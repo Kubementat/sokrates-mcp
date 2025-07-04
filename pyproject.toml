@@ -1,0 +1,13 @@
+[project]
+name = "my-mcp-server"
+version = "0.1.0"
+description = "A templated MCP server for demonstration and quick start."
+dependencies = [
+    "fastmcp",
+    "llm_tools @ file:///Users/dude/dev/os_projects/llm_tools",
+    "pydantic"
+]
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
