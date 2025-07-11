@@ -450,7 +450,7 @@ wheels = [
 
 [[package]]
 name = "llm-tools"
-version = "0.1.13"
+version = "0.1.14"
 source = { directory = "../../../../dev/os_projects/llm_tools" }
 dependencies = [
     { name = "click" },
