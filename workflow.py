@@ -37,3 +37,12 @@ class Workflow:
     await ctx.info(f"External Prompt execution workflow started with model: {model} . Waiting for the responses from the LLM...")
     await ctx.info(MCPConfig.WORKFLOW_COMPLETION_MESSAGE)
     return result
+  
+  async def breakdown_task(self, task: str, ctx: Context, model: str) -> str:
+    breakdown_instructions_filepath = f"{MCPConfig.DEFAULT_PROMPTS_DIRECTORY}/breakdown-v1.md"
+    breakdown_instructions = FileHelper.read_file(breakdown_instructions_filepath, verbose=False)
+
+    await ctx.info(f"Task break-down started with model: {model} . Waiting for the response from the LLM...")
+    result = self.refinement_workflow.breakdown_task(task=task, breakdown_instructions=breakdown_instructions, model=model)
+    await ctx.info(MCPConfig.WORKFLOW_COMPLETION_MESSAGE)
+    return result

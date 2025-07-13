@@ -1,8 +1,8 @@
 from llm_tools import Config
 
-# DEFAULT_API_ENDPOINT = "http://localhost:1234/v1"
+DEFAULT_API_ENDPOINT = "http://localhost:1234/v1"
 # TODO: make this configurable via startup parameters of the server or an optional config file
-DEFAULT_API_ENDPOINT = "http://192.168.178.57:1234/v1"
+# DEFAULT_API_ENDPOINT = "http://192.168.178.57:1234/v1"
 DEFAULT_API_KEY = "mykey"
 DEFAULT_MODEL = "gemma-3n-e4b-it-text"
 

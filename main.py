@@ -3,8 +3,8 @@ from typing import Annotated, Optional
 from pydantic import Field
 from llm_tools import RefinementWorkflow, FileHelper, LLMApi, PromptRefiner
 from mcp_config import MCPConfig
-from workflow import Workflow 
-    
+from workflow import Workflow
+
 config = MCPConfig()
 workflow = Workflow(config)
 
@@ -61,6 +61,22 @@ async def handover_prompt(prompt: Annotated[str, Field(description="Prompt that 
     """Hands over a prompt to an external llm for processing and delivers back the processed result.
     """
     return await workflow.handover_prompt(prompt=prompt, ctx=ctx, model=model)
+
+# -------------------------------------------------------------------------
+
+@mcp.tool(
+    name="breakdown_task",
+    description="Breaks down a task into sub-tasks back a json list of sub-tasks with complexity ratings.",
+    tags={"prompting", "task", "breakdown"}
+)
+async def breakdown_task(task: Annotated[str, Field(description="The full task description to break down further.")], 
+    ctx: Context,
+    model: Annotated[str, Field(description="[Optional] The name of the model that should be used for the external prompt processing. The default model name is: qwen/qwen3-8b", default="qwen/qwen3-8b")],
+    ) -> str:
+    """
+    Breaks down a task into sub-tasks back a json list of sub-tasks with complexity ratings.
+    """
+    return await workflow.breakdown_task(task=task, ctx=ctx, model=model)
 
 if __name__ == "__main__":
     mcp.run()
