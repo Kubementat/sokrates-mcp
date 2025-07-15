@@ -1,18 +1,57 @@
+# MCP Configuration Module
+#
+# This module provides configuration management for the MCP server.
+# It loads configuration from a YAML file and sets default values if needed.
+#
+# Parameters:
+# - config_file_path: Path to the YAML configuration file (default: ~/.llm-tools-mcp/config.yml)
+# - api_endpoint: API endpoint URL (default: http://localhost:1234/v1)
+# - api_key: API key for authentication (default: mykey)
+# - model: Model name to use (default: qwen/qwen3-8b)
+#
+# Usage example:
+#   config = MCPConfig(api_endpoint="https://api.example.com", model="my-model")
+import os
+import yaml
+import logging
 from llm_tools import Config
 
 DEFAULT_API_ENDPOINT = "http://localhost:1234/v1"
-# TODO: make this configurable via startup parameters of the server or an optional config file
-# DEFAULT_API_ENDPOINT = "http://192.168.178.57:1234/v1"
 DEFAULT_API_KEY = "mykey"
-DEFAULT_MODEL = "qwen/qwen3-14b"
+DEFAULT_MODEL = "qwen/qwen3-8b"
 
 class MCPConfig:
-    WORKFLOW_COMPLETION_MESSAGE = "Workflow completed."
-    DEFAULT_PROMPTS_DIRECTORY = "/Users/dude/dev/os_projects/llm_tools/src/llm_tools/prompts"
-    # DEFAULT_PROMPTS_DIRECTORY = Config.DEFAULT_PROMPTS_DIRECTORY
+    CONFIG_FILE_PATH = os.path.expanduser("~/.llm-tools-mcp/config.yml")
+    DEFAULT_PROMPTS_DIRECTORY = Config.DEFAULT_PROMPTS_DIRECTORY
     DEFAULT_REFINEMENT_PROMPT_FILENAME = "refine-prompt.md"
+    DEFAULT_REFINEMENT_CODING_PROMPT_FILENAME = "refine-coding-v3.md"
+    
+    def __init__(self, config_file_path=CONFIG_FILE_PATH, api_endpoint = DEFAULT_API_ENDPOINT, api_key = DEFAULT_API_KEY, model= DEFAULT_MODEL, verbose=False):
+        self.logger = logging.getLogger(__name__)
+        self.config_file_path = config_file_path
+        config_data = self._load_config_from_file(self.config_file_path)
 
-    def __init__(self, api_endpoint = DEFAULT_API_ENDPOINT, api_key = DEFAULT_API_KEY, model= DEFAULT_MODEL):
-        self.api_endpoint = api_endpoint
-        self.api_key = api_key
-        self.model = model
+        self.api_endpoint = config_data.get("api_endpoint", api_endpoint)
+        self.api_key = config_data.get("api_key", api_key)
+        self.model = config_data.get("model", model)
+        self.prompts_directory = config_data.get("prompts_directory", self.DEFAULT_PROMPTS_DIRECTORY)
+        self.refinement_prompt_filename = config_data.get("refinement_prompt_filename", self.DEFAULT_REFINEMENT_PROMPT_FILENAME)
+        self.refinement_coding_prompt_filename = config_data.get("refinement_coding_prompt_filename", self.DEFAULT_REFINEMENT_CODING_PROMPT_FILENAME)
+        
+        self.logger.info(f"Configuration loaded from {self.config_file_path}:")
+        self.logger.info(f"  API Endpoint: {self.api_endpoint}")
+        self.logger.info(f"  Model: {self.model}")
+        self.logger.info(f"  Prompts Directory: {self.prompts_directory}")
+        self.logger.info(f"  Refinement Prompt Filename: {self.refinement_prompt_filename}")
+        self.logger.info(f"  Refinement Coding Prompt Filename: {self.refinement_coding_prompt_filename}")
+
+    def _load_config_from_file(self, config_file_path):
+        if os.path.exists(config_file_path):
+            try:
+                with open(config_file_path, 'r') as f:
+                    return yaml.safe_load(f)
+            except yaml.YAMLError as e:
+                print(f"Error parsing YAML config file {config_file_path}: {e}")
+            except Exception as e:
+                print(f"Error reading config file {config_file_path}: {e}")
+        return {}
