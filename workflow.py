@@ -1,6 +1,6 @@
 from fastmcp import Context
 from mcp_config import MCPConfig
-from llm_tools import FileHelper, RefinementWorkflow, LLMApi, PromptRefiner
+from llm_tools import FileHelper, RefinementWorkflow, LLMApi, PromptRefiner, IdeaGenerationWorkflow
 from pathlib import Path
 class Workflow:
   
@@ -67,6 +67,14 @@ class Workflow:
     result = self.refinement_workflow.breakdown_task(task=task, model=model)
     await ctx.info(self.WORKFLOW_COMPLETION_MESSAGE)
     return result
+  
+  async def generate_ideas(self, ctx: Context, idea_count: int = 1, temperature: float = 0.7) -> str:
+    await ctx.info(f"Task generate ideas started with idea_count: {idea_count} and temperature: {temperature}. Waiting for the response from the LLM...")
+    idea_generation_workflow = IdeaGenerationWorkflow(api_endpoint=self.config.api_endpoint, api_key=self.config.api_key, idea_count=idea_count, temperature=temperature)
+    results = idea_generation_workflow.run()
+    result_text = f"\n---\n".join(results)
+    await ctx.info(self.WORKFLOW_COMPLETION_MESSAGE)
+    return result_text
 
   async def list_available_models(self, ctx: Context) -> str:
     await ctx.info("Retrieving list of available models...")

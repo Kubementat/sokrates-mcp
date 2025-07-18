@@ -191,6 +191,17 @@ async def breakdown_task(task: Annotated[str, Field(description="The full task d
     return await workflow.breakdown_task(task=task, ctx=ctx, model=model)
 
 @mcp.tool(
+    name="generate_ideas",
+    description="Invents and generates the provided count of ideas.",
+    tags={"idea", "generator", "idea generation", "invention"}
+)
+async def generate_ideas(idea_count: Annotated[int, Field(description="The number of ideas to generate.")],
+    temperature: Annotated[float, Field(description="The temperature of the llm to use for generating the ideas.")],
+    ctx: Context,
+    ) -> str:
+    return await workflow.generate_ideas(ctx=ctx, idea_count=idea_count, temperature=temperature)
+
+@mcp.tool(
     name="list_available_models",
     description="Lists all available large language models accessible by the llm-tools-mcp server.",
     tags={"refinement", "llm", "models", "list"}

@@ -2,6 +2,7 @@
 name = "llm-tools-mcp"
 version = "0.1.5"
 description = "A templated MCP server for demonstration and quick start."
+requires-python = ">=3.10"
 dependencies = [
     "fastmcp",
     "llm_tools @ file:///Users/dude/dev/os_projects/llm_tools",
