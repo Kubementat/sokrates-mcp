@@ -1,6 +1,6 @@
 from fastmcp import Context
 from mcp_config import MCPConfig
-from llm_tools import FileHelper, RefinementWorkflow, LLMApi, PromptRefiner, IdeaGenerationWorkflow
+from sokrates import FileHelper, RefinementWorkflow, LLMApi, PromptRefiner, IdeaGenerationWorkflow
 from pathlib import Path
 class Workflow:
   
@@ -48,13 +48,13 @@ class Workflow:
     await ctx.info(self.WORKFLOW_COMPLETION_MESSAGE)
     return result
   
-  async def handover_prompt(self, prompt: str, ctx: Context, model: str) -> str:
+  async def handover_prompt(self, prompt: str, ctx: Context, model: str, temperature=0.7) -> str:
     llm_api = LLMApi(api_endpoint=self.config.api_endpoint, api_key=self.config.api_key)
     refiner = PromptRefiner()
     
     model = self.get_model(model)
     
-    result = llm_api.send(prompt,model=model)
+    result = llm_api.send(prompt,model=model, temperature=temperature)
     result = refiner.clean_response(result)
     
     await ctx.info(f"External Prompt execution workflow started with model: {model} . Waiting for the responses from the LLM...")
@@ -68,9 +68,38 @@ class Workflow:
     await ctx.info(self.WORKFLOW_COMPLETION_MESSAGE)
     return result
   
-  async def generate_ideas(self, ctx: Context, idea_count: int = 1, temperature: float = 0.7) -> str:
-    await ctx.info(f"Task generate ideas started with idea_count: {idea_count} and temperature: {temperature}. Waiting for the response from the LLM...")
-    idea_generation_workflow = IdeaGenerationWorkflow(api_endpoint=self.config.api_endpoint, api_key=self.config.api_key, idea_count=idea_count, temperature=temperature)
+  async def generate_random_ideas(self, ctx: Context, idea_count: int = 1, temperature: float = 0.7, model: str = None) -> str:
+    await ctx.info(f"Task `generate random ideas` started with model: {model} , idea_count: {idea_count} and temperature: {temperature}. Waiting for the response from the LLM...")
+    if model == 'default':
+      model = None
+    idea_generation_workflow = IdeaGenerationWorkflow(api_endpoint=self.config.api_endpoint, 
+      api_key=self.config.api_key, 
+      idea_count=idea_count, 
+      temperature=temperature,
+      generator_llm_model=model,
+      refinement_llm_model=model,
+      execution_llm_model=model,
+      topic_generation_llm_model=model
+    )
+    results = idea_generation_workflow.run()
+    result_text = f"\n---\n".join(results)
+    await ctx.info(self.WORKFLOW_COMPLETION_MESSAGE)
+    return result_text
+  
+  async def generate_ideas_on_topic(self, ctx: Context, topic: str, idea_count: int = 1, temperature: float = 0.7, model: str = None) -> str:
+    await ctx.info(f"Task `generate ideas on topic` started with topic: '{topic}' , model: {model} , idea_count: {idea_count} and temperature: {temperature}. Waiting for the response from the LLM...")
+    if model == 'default':
+      model = None
+    idea_generation_workflow = IdeaGenerationWorkflow(api_endpoint=self.config.api_endpoint, 
+      api_key=self.config.api_key, 
+      topic=topic,
+      idea_count=idea_count, 
+      temperature=temperature,
+      generator_llm_model=model,
+      refinement_llm_model=model,
+      execution_llm_model=model,
+      topic_generation_llm_model=model
+    )
     results = idea_generation_workflow.run()
     result_text = f"\n---\n".join(results)
     await ctx.info(self.WORKFLOW_COMPLETION_MESSAGE)

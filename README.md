@@ -1,4 +1,4 @@
-# llm-tools-mcp
+# sokrates-mcp
 
 A MCP server offering tools for prompt refinement and execution workflows using the FastMCP framework.
 
@@ -23,8 +23,8 @@ Ensure you have:
 
 1. Clone the repository if hosted:
 ```bash
-git clone https://github.com/Kubementat/llm-tools-mcp-server.git
-cd llm-tools-mcp-server
+git clone https://github.com/Kubementat/sokrates-mcp.git
+cd sokrates-mcp
 ```
 
 2. Install dependencies using pyproject.toml:
@@ -214,7 +214,6 @@ If you see "ModuleNotFoundError: fastmcp", ensure:
 ## Additional Resources
 
 - [MCP Specification Documentation](https://mcp-spec.readthedocs.io)
-- Related project: [llm-tools-mcp-client](https://github.com/Kubementat/llm-tools-mcp-server)
 
 ## Changelog
 
@@ -227,4 +226,4 @@ If you see "ModuleNotFoundError: fastmcp", ensure:
 - Initial release with refinement tools
 - Basic FastMCP integration
 
-Bug reports and feature requests: [GitHub Issues](https://github.com/Kubementat/llm-tools-mcp-server/issues)
+Bug reports and feature requests: [GitHub Issues](https://github.com/Kubementat/sokrates-mcp/issues)

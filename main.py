@@ -1,4 +1,4 @@
-# main.py - MCP Server for LLM Tools
+# main.py - MCP Server for sokrates library
 
 # This script sets up an MCP server using the FastMCP framework to provide tools for prompt refinement and execution workflows.
 # It includes several tools that can be used to refine prompts, execute them with external LLMs, break down tasks,
@@ -56,7 +56,7 @@
 
 from typing import Annotated, Optional
 from pydantic import Field
-from llm_tools import RefinementWorkflow, FileHelper, LLMApi, PromptRefiner
+from sokrates import RefinementWorkflow, FileHelper, LLMApi, PromptRefiner
 from mcp_config import MCPConfig
 from workflow import Workflow
 from fastmcp import FastMCP, Context
@@ -67,15 +67,15 @@ config = MCPConfig()
 workflow = Workflow(config)
 
 # Configure logging for better visibility of fastmcp operations
-log_file_path = os.path.expanduser("~/.llm-tools-mcp/server.log")
+log_file_path = os.path.expanduser("~/.sokrates-mcp/server.log")
 os.makedirs(os.path.dirname(log_file_path), exist_ok=True)
 logging.basicConfig(level=logging.INFO, filename=log_file_path, filemode='a', format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
 # Initialize the MCP Server
 mcp = FastMCP(
-    name="llm-tools-mcp",
-    instructions="A MCP server for using the llm tools: prompt refinement and improvement workflows.",
+    name="sokrates-mcp",
+    instructions="A MCP server for using sokrates python library's tools: prompt refinement and improvement workflows.",
     version="0.1.0"
 )
 
@@ -147,6 +147,7 @@ async def refine_and_execute_external_prompt(prompt: Annotated[str, Field(descri
 )
 async def handover_prompt(prompt: Annotated[str, Field(description="Prompt that should be executed externally.")],
     ctx: Context,
+    temperature: Annotated[float, Field(description="[Optional] The temperature of the llm to use for generating the ideas. The default value is 0.7 .", default=0.7)],
     model: Annotated[str, Field(description="[Optional] The name of the model that should be used for the external prompt processing. The default model name is 'default', which will pick the server's default model.", default='default')],
     ) -> str:
     """
@@ -156,6 +157,7 @@ async def handover_prompt(prompt: Annotated[str, Field(description="Prompt that 
         prompt (str): The prompt to be executed externally.
         ctx (Context): The MCP context object.
         model (str, optional): Model name for execution. Default is 'default'.
+        temperature (float, optional): the temperature to use for the external execution
 
     Returns:
         str: The processed result from the external LLM.
@@ -191,19 +193,34 @@ async def breakdown_task(task: Annotated[str, Field(description="The full task d
     return await workflow.breakdown_task(task=task, ctx=ctx, model=model)
 
 @mcp.tool(
-    name="generate_ideas",
-    description="Invents and generates the provided count of ideas.",
+    name="generate_random_ideas",
+    description="Invents and generates a random topic an generates the provided count of ideas on the topic.",
+    tags={"idea", "generator", "idea generation", "invention", "random"}
+)
+async def generate_random_ideas(ctx: Context,
+    idea_count: Annotated[int, Field(description="[Optional] The number of ideas to generate. The default value is 1.", default=1)],
+    model: Annotated[str, Field(description="[Optional] The name of the model that should be used for the generation. The default model name is 'default', which will pick the server's default model.", default='default')],
+    temperature: Annotated[float, Field(description="[Optional] The temperature of the llm to use for generating the ideas. The default value is 0.7 .", default=0.7)]
+    ) -> str:
+    return await workflow.generate_random_ideas(ctx=ctx, model=model, idea_count=idea_count, temperature=temperature)
+
+@mcp.tool(
+    name="generate_ideas_on_topic",
+    description="Generates the provided count of ideas on the provided topic.",
     tags={"idea", "generator", "idea generation", "invention"}
 )
-async def generate_ideas(idea_count: Annotated[int, Field(description="The number of ideas to generate.")],
-    temperature: Annotated[float, Field(description="The temperature of the llm to use for generating the ideas.")],
+async def generate_ideas_on_topic(
     ctx: Context,
+    topic: Annotated[str, Field(description="The topic to generate ideas for.")],
+    model: Annotated[str, Field(description="[Optional] The name of the model that should be used for the generation. The default model name is 'default', which will pick the server's default model.", default='default')],
+    idea_count: Annotated[int, Field(description="[Optional] The number of ideas to generate. The default value is 1.", default=1)],
+    temperature: Annotated[float, Field(description="The temperature of the llm to use for generating the ideas. The default value is 0.7 .", default=0.7)]
     ) -> str:
-    return await workflow.generate_ideas(ctx=ctx, idea_count=idea_count, temperature=temperature)
+    return await workflow.generate_ideas_on_topic(ctx=ctx, model=model, topic=topic, idea_count=idea_count, temperature=temperature)
 
 @mcp.tool(
     name="list_available_models",
-    description="Lists all available large language models accessible by the llm-tools-mcp server.",
+    description="Lists all available large language models accessible by the sokrates-mcp server.",
     tags={"refinement", "llm", "models", "list"}
 )
 async def list_available_models(ctx: Context) -> str:
@@ -222,3 +239,4 @@ async def list_available_models(ctx: Context) -> str:
 
 if __name__ == "__main__":
     mcp.run()
+    # mcp.run(transport="streamable-http")

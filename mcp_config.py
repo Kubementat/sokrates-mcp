@@ -4,7 +4,7 @@
 # It loads configuration from a YAML file and sets default values if needed.
 #
 # Parameters:
-# - config_file_path: Path to the YAML configuration file (default: ~/.llm-tools-mcp/config.yml)
+# - config_file_path: Path to the YAML configuration file (default: ~/.sokrates-mcp/config.yml)
 # - api_endpoint: API endpoint URL (default: http://localhost:1234/v1)
 # - api_key: API key for authentication (default: mykey)
 # - model: Model name to use (default: qwen/qwen3-8b)
@@ -14,7 +14,7 @@
 import os
 import yaml
 import logging
-from llm_tools import Config
+from sokrates import Config
 
 DEFAULT_API_ENDPOINT = "http://localhost:1234/v1"
 DEFAULT_API_KEY = "mykey"
@@ -36,7 +36,7 @@ class MCPConfig:
         __init__: Initialize the configuration with optional parameters
         _load_config_from_file: Load configuration from file
     """
-    CONFIG_FILE_PATH = os.path.expanduser("~/.llm-tools-mcp/config.yml")
+    CONFIG_FILE_PATH = os.path.expanduser("~/.sokrates-mcp/config.yml")
     DEFAULT_PROMPTS_DIRECTORY = Config.DEFAULT_PROMPTS_DIRECTORY
     DEFAULT_REFINEMENT_PROMPT_FILENAME = "refine-prompt.md"
     DEFAULT_REFINEMENT_CODING_PROMPT_FILENAME = "refine-coding-v3.md"
