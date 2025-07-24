@@ -16,6 +16,14 @@ class Workflow:
     if model == 'None' or model == 'default' or model is None:
       return self.config.model
     return model
+  
+  def initialize_refinement_workflow(self, api_endpoint: str = None, api_key: str = None, model: str = None):
+    model = self.get_model(model)
+    if api_endpoint is None:
+      api_endpoint = self.config.api_endpoint
+    if api_key is None:
+      api_key = self.config.api_key
+    self.refinement_workflow = RefinementWorkflow(api_endpoint=api_endpoint, api_key=api_key, model=model)
     
   def load_refinement_prompt(self, refinement_type : str = 'default'):
     path=self.config.prompts_directory
@@ -29,11 +37,11 @@ class Workflow:
     
   async def refine_prompt(self, prompt: str, ctx: Context, model: str, refinement_type: str = 'default') -> str:
     refinement_prompt = self.load_refinement_prompt(refinement_type)
-    
+    self.initialize_refinement_workflow(model=model)
     model = self.get_model(model)
     
     await ctx.info(f"Prompt refinement and execution workflow started with refinement model: {model} . Waiting for the response from the LLM...")
-    refined = self.refinement_workflow.refine_prompt(prompt, refinement_prompt)
+    refined = self.refinement_workflow.refine_prompt(input_prompt=prompt, refinement_prompt=refinement_prompt)
     await ctx.info(self.WORKFLOW_COMPLETION_MESSAGE)
     return refined
   
