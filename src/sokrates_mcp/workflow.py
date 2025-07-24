@@ -1,5 +1,5 @@
 from fastmcp import Context
-from mcp_config import MCPConfig
+from .mcp_config import MCPConfig
 from sokrates import FileHelper, RefinementWorkflow, LLMApi, PromptRefiner, IdeaGenerationWorkflow
 from pathlib import Path
 class Workflow:

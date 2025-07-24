@@ -42,17 +42,14 @@ python -c "import fastmcp; print(fastmcp.__version__)"
 ### Starting the Server
 
 ```bash
-uv run python main.py
-# Default port: 8000 (check console output for exact address)
-
-# or run via fastmcp cli
-uv run fastmcp run main.py -t streamable-http --port 8001
+uv run sokrates-mcp
 ```
 
 ### Development Mode
 
 ```bash
-uv run fastmcp dev main.py
+# TODO: this is not working right now
+uv run fastmcp dev src/sokrates_mcp/main.py
 # Auto-reloads on code changes with detailed logs
 ```
 

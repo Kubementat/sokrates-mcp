@@ -56,12 +56,13 @@
 
 from typing import Annotated, Optional
 from pydantic import Field
-from sokrates import RefinementWorkflow, FileHelper, LLMApi, PromptRefiner
-from mcp_config import MCPConfig
-from workflow import Workflow
+from .mcp_config import MCPConfig
+from .workflow import Workflow
 from fastmcp import FastMCP, Context
 import logging
 import os
+
+
 
 config = MCPConfig()
 workflow = Workflow(config)
@@ -237,6 +238,9 @@ async def list_available_models(ctx: Context) -> str:
     """
     return await workflow.list_available_models(ctx=ctx)
 
-if __name__ == "__main__":
+def main():
     mcp.run()
     # mcp.run(transport="streamable-http")
+
+if __name__ == "__main__":
+    main()
