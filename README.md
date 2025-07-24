@@ -44,6 +44,9 @@ python -c "import fastmcp; print(fastmcp.__version__)"
 ```bash
 uv run python main.py
 # Default port: 8000 (check console output for exact address)
+
+# or run via fastmcp cli
+uv run fastmcp run main.py -t streamable-http --port 8001
 ```
 
 ### Development Mode

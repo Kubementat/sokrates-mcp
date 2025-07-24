@@ -262,7 +262,7 @@ wheels = [
 
 [[package]]
 name = "cyclopts"
-version = "3.22.2"
+version = "3.22.3"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "attrs" },
@@ -271,9 +271,9 @@ dependencies = [
     { name = "rich-rst" },
     { name = "typing-extensions", marker = "python_full_version < '3.11'" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/cc/2e/8c45ef5b00bd48d7cabbf6f90b7f12df4c232755cd46e6dbc6690f9ac0c5/cyclopts-3.22.2.tar.gz", hash = "sha256:d3495231af6ae86479579777d212ddf77b113200f828badeaf401162ed87227d", size = 74520, upload-time = "2025-07-09T12:21:46.866Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/c8/05/9d5a0a8f4628f6a1230b43e0c34a7dc45c40a17045a09f4a5d7145da12e2/cyclopts-3.22.3.tar.gz", hash = "sha256:7df1d05e4b56b07079e13880b457b78522101531e2947af1a68f182e89742b34", size = 74837, upload-time = "2025-07-23T23:25:09.815Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/83/5b/5939e05d87def1612c494429bee705d6b852fad1d21dd2dee1e3ce39997e/cyclopts-3.22.2-py3-none-any.whl", hash = "sha256:6681b0815fa2de2bccc364468fd25b15aa9617cb505c0b16ca62e2b18a57619e", size = 84578, upload-time = "2025-07-09T12:21:44.878Z" },
+    { url = "https://files.pythonhosted.org/packages/16/1f/4b9f6986add9f6ff361c1bfffeb08fc2f2f6752f8adf8d4dcf0a988b6f28/cyclopts-3.22.3-py3-none-any.whl", hash = "sha256:771ae584868c8beeac74184a96e9fad3726c787b17e47a6f0d5f42cece1df57a", size = 84941, upload-time = "2025-07-23T23:25:08.527Z" },
 ]
 
 [[package]]
@@ -1618,7 +1618,7 @@ wheels = [
 [[package]]
 name = "sokrates"
 version = "0.2.9"
-source = { directory = "../../../../dev/os_projects/sokrates" }
+source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "click" },
     { name = "colorama" },
@@ -1634,27 +1634,14 @@ dependencies = [
     { name = "requests" },
     { name = "tabulate" },
 ]
-
-[package.metadata]
-requires-dist = [
-    { name = "click" },
-    { name = "colorama" },
-    { name = "dotenv" },
-    { name = "html2text" },
-    { name = "markdownify" },
-    { name = "openai" },
-    { name = "openai-whisper" },
-    { name = "psutil" },
-    { name = "pyaudio" },
-    { name = "pytest" },
-    { name = "pytest-mock" },
-    { name = "requests" },
-    { name = "tabulate" },
+sdist = { url = "https://files.pythonhosted.org/packages/22/51/05b53fb3fea8b0b1b455abc5be16c0b08ee2c9818d9634bcc04f980e28db/sokrates-0.2.9.tar.gz", hash = "sha256:7978b2bf782299cbc79eb5431f7bf0a00e3a87e30a7c6516f5f64fba3d66a780", size = 270768, upload-time = "2025-07-24T11:47:22.236Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/1a/2a/1385d22dd110d2f938aacaa547aac0479ec56dbce9b42be31fc547f229b1/sokrates-0.2.9-py3-none-any.whl", hash = "sha256:9372ba0ab2c74effe9cae997597d8cde03efeb0539d5a58f5f3acbd0d4d021e3", size = 81472, upload-time = "2025-07-24T11:47:20.53Z" },
 ]
 
 [[package]]
 name = "sokrates-mcp"
-version = "0.1.5"
+version = "0.1.6"
 source = { editable = "." }
 dependencies = [
     { name = "fastmcp" },
@@ -1668,7 +1655,7 @@ requires-dist = [
     { name = "fastmcp" },
     { name = "pydantic" },
     { name = "pyyaml" },
-    { name = "sokrates", directory = "../../../../dev/os_projects/sokrates" },
+    { name = "sokrates" },
 ]
 
 [[package]]
