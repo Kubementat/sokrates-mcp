@@ -90,6 +90,7 @@ mcp = FastMCP(
 async def refine_prompt(prompt: Annotated[str, Field(description="Input prompt that should be refined")],
     ctx: Context,
     refinement_type: Annotated[str, Field(description="The type of the refinement. This could be 'code' (for refining coding tasks) or 'default' . The default type is: default", default="default")],
+    provider: Annotated[str, Field(description="The name of the provider to use for the prompt refinement process. The default model name is 'default', which will pick the server's default provider configured.", default='default')],
     model: Annotated[str, Field(description="The name of the model that should be used for the prompt refinement process. The default model name is 'default', which will pick the server's default model.", default='default')],
     ) -> str:
     """
@@ -100,6 +101,7 @@ async def refine_prompt(prompt: Annotated[str, Field(description="Input prompt t
         prompt (str): The input prompt to be refined.
         ctx (Context): The MCP context object.
         refinement_type (str, optional): Type of refinement ('code' or 'default'). Default is 'default'.
+        provider (str, optional)
         model (str, optional): Model name for refinement. Default is 'default'.
 
     Returns:
@@ -107,7 +109,7 @@ async def refine_prompt(prompt: Annotated[str, Field(description="Input prompt t
 
     This function delegates the actual refinement work to the workflow.refine_prompt method.
     """
-    return await workflow.refine_prompt(prompt=prompt, ctx=ctx, model=model, refinement_type=refinement_type)
+    return await workflow.refine_prompt(prompt=prompt, ctx=ctx, provider=provider, model=model, refinement_type=refinement_type)
 
 # -------------------------------------------------------------------------
 
@@ -118,6 +120,7 @@ async def refine_prompt(prompt: Annotated[str, Field(description="Input prompt t
 )
 async def refine_and_execute_external_prompt(prompt: Annotated[str, Field(description="Input prompt that should be refined and then processed.")],
     ctx: Context,
+    provider: Annotated[str, Field(description="The name of the provider to use for LLM interactions. The default model name is 'default', which will pick the server's default provider configured.", default='default')],
     refinement_model: Annotated[str, Field(description="[Optional] The name of the model that should be used for the prompt refinement process. The default refinement model name is 'default', which will pick the server's default model.", default='default')],
     execution_model: Annotated[str, Field(description="[Optional] The name of the external model that should be used for the execution of the refined prompt. The default execution model name is 'default', which will pick the server's default model.", default='default')],
     refinement_type: Annotated[str, Field(description="The type of the refinement. This could be 'code' (for refining coding tasks) or 'default' for any general refinement tasks. The default type is: default", default="default")],
@@ -137,7 +140,7 @@ async def refine_and_execute_external_prompt(prompt: Annotated[str, Field(descri
 
     This function first refines the prompt and then executes it with an external LLM.
     """
-    return await workflow.refine_and_execute_external_prompt(prompt=prompt, ctx=ctx, refinement_model=refinement_model, execution_model=execution_model, refinement_type=refinement_type)
+    return await workflow.refine_and_execute_external_prompt(prompt=prompt, ctx=ctx, provider=provider, refinement_model=refinement_model, execution_model=execution_model, refinement_type=refinement_type)
 
 # -------------------------------------------------------------------------
 
@@ -148,6 +151,7 @@ async def refine_and_execute_external_prompt(prompt: Annotated[str, Field(descri
 )
 async def handover_prompt(prompt: Annotated[str, Field(description="Prompt that should be executed externally.")],
     ctx: Context,
+    provider: Annotated[str, Field(description="The name of the provider to use for LLM interactions. The default model name is 'default', which will pick the server's default provider configured.", default='default')],
     temperature: Annotated[float, Field(description="[Optional] The temperature of the llm to use for generating the ideas. The default value is 0.7 .", default=0.7)],
     model: Annotated[str, Field(description="[Optional] The name of the model that should be used for the external prompt processing. The default model name is 'default', which will pick the server's default model.", default='default')],
     ) -> str:
@@ -165,7 +169,7 @@ async def handover_prompt(prompt: Annotated[str, Field(description="Prompt that 
 
     This function delegates the prompt execution to an external LLM and returns the result.
     """
-    return await workflow.handover_prompt(prompt=prompt, ctx=ctx, model=model)
+    return await workflow.handover_prompt(prompt=prompt, ctx=ctx, provider=provider, model=model)
 
 # -------------------------------------------------------------------------
 
@@ -176,6 +180,7 @@ async def handover_prompt(prompt: Annotated[str, Field(description="Prompt that 
 )
 async def breakdown_task(task: Annotated[str, Field(description="The full task description to break down further.")],
     ctx: Context,
+    provider: Annotated[str, Field(description="The name of the provider to use for LLM interactions. The default model name is 'default', which will pick the server's default provider configured.", default='default')],
     model: Annotated[str, Field(description="[Optional] The name of the model that should be used for the external prompt processing. The default model name is 'default', which will pick the server's default model.", default='default')],
     ) -> str:
     """
@@ -191,7 +196,7 @@ async def breakdown_task(task: Annotated[str, Field(description="The full task d
 
     This function uses an LLM to analyze the task and break it down into manageable sub-tasks.
     """
-    return await workflow.breakdown_task(task=task, ctx=ctx, model=model)
+    return await workflow.breakdown_task(task=task, ctx=ctx, provider=provider, model=model)
 
 @mcp.tool(
     name="generate_random_ideas",
@@ -200,10 +205,11 @@ async def breakdown_task(task: Annotated[str, Field(description="The full task d
 )
 async def generate_random_ideas(ctx: Context,
     idea_count: Annotated[int, Field(description="[Optional] The number of ideas to generate. The default value is 1.", default=1)],
+    provider: Annotated[str, Field(description="The name of the provider to use for LLM interactions. The default model name is 'default', which will pick the server's default provider configured.", default='default')],
     model: Annotated[str, Field(description="[Optional] The name of the model that should be used for the generation. The default model name is 'default', which will pick the server's default model.", default='default')],
     temperature: Annotated[float, Field(description="[Optional] The temperature of the llm to use for generating the ideas. The default value is 0.7 .", default=0.7)]
     ) -> str:
-    return await workflow.generate_random_ideas(ctx=ctx, model=model, idea_count=idea_count, temperature=temperature)
+    return await workflow.generate_random_ideas(ctx=ctx, provider=provider, model=model, idea_count=idea_count, temperature=temperature)
 
 @mcp.tool(
     name="generate_ideas_on_topic",
@@ -213,11 +219,12 @@ async def generate_random_ideas(ctx: Context,
 async def generate_ideas_on_topic(
     ctx: Context,
     topic: Annotated[str, Field(description="The topic to generate ideas for.")],
+    provider: Annotated[str, Field(description="The name of the provider to use for LLM interactions. The default model name is 'default', which will pick the server's default provider configured.", default='default')],
     model: Annotated[str, Field(description="[Optional] The name of the model that should be used for the generation. The default model name is 'default', which will pick the server's default model.", default='default')],
     idea_count: Annotated[int, Field(description="[Optional] The number of ideas to generate. The default value is 1.", default=1)],
     temperature: Annotated[float, Field(description="The temperature of the llm to use for generating the ideas. The default value is 0.7 .", default=0.7)]
     ) -> str:
-    return await workflow.generate_ideas_on_topic(ctx=ctx, model=model, topic=topic, idea_count=idea_count, temperature=temperature)
+    return await workflow.generate_ideas_on_topic(ctx=ctx, provider=provider, model=model, topic=topic, idea_count=idea_count, temperature=temperature)
 
 @mcp.tool(
     name="generate_code_review",
@@ -228,29 +235,27 @@ async def generate_code_review(
     ctx: Context,
     source_file_paths: Annotated[list, Field(description="A list of source file paths that should be reviewed. The paths should be absolute paths in the local filesystem.")],
     target_directory: Annotated[str, Field(description="The directory to store the resulting review markdown files. This should point to the desired target path for the markdown files on the local filesystem.")],
+    provider: Annotated[str, Field(description="The name of the provider to use for LLM interactions. The default model name is 'default', which will pick the server's default provider configured.", default='default')],
     model: Annotated[str, Field(description="[Optional] The name of the model that should be used for the generation. The default model name is 'default', which will pick the server's default model.", default='default')],
     review_type: Annotated[str, Field(description="[Optional] The type of review to execute. Choices are: 'style', 'security', 'performance', 'quality' . The default is 'quality'", default='quality')]
     ) -> str:
-    return await workflow.generate_code_review(ctx=ctx, model=model, review_type=review_type, source_file_paths=source_file_paths, target_directory=target_directory)
+    return await workflow.generate_code_review(ctx=ctx, provider=provider, model=model, review_type=review_type, source_file_paths=source_file_paths, target_directory=target_directory)
 
 @mcp.tool(
-    name="list_available_models",
-    description="Lists all available large language models accessible by the sokrates-mcp server.",
+    name="list_available_models_for_provider",
+    description="Lists all available large language models and the target api endpoint configured as provider for the sokrates-mcp server.",
     tags={"refinement", "llm", "models", "list"}
 )
-async def list_available_models(ctx: Context) -> str:
-    """
-    Returns a list of all available large language models.
+async def list_available_models_for_provider(ctx: Context, provider_name: Annotated[str, Field(description="The provider name to list the available models for", default="")]) -> str:
+    return await workflow.list_available_models_for_provider(ctx=ctx, provider_name=provider_name)
 
-    Args:
-        ctx (Context): The MCP context object.
-
-    Returns:
-        str: A string containing the list of available models.
-
-    This function queries the workflow to get a list of all models accessible by the server.
-    """
-    return await workflow.list_available_models(ctx=ctx)
+@mcp.tool(
+    name="list_available_providers",
+    description="Lists all configured and available API providers for large language models for the sokrates-mcp server.",
+    tags={"refinement", "llm", "providers", "list"}
+)
+async def list_available_providers(ctx: Context):
+    return await workflow.list_available_providers(ctx=ctx)
 
 def main():
     mcp.run()

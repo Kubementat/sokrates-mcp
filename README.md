@@ -29,12 +29,14 @@ cd sokrates-mcp
 
 2. Install dependencies using pyproject.toml:
 ```bash
-uv pip install .
+uv sync
 ```
-
-3. Verify installation:
+3. Configure server settings
 ```bash
-python -c "import fastmcp; print(fastmcp.__version__)"
+mkdir $HOME/.sokrates-mcp
+cp config.yml.example $HOME/.sokrates-mcp/config.yml
+# edit the according endpoints to your use case
+vim $HOME/.sokrates-mcp/config.yml
 ```
 
 ## Usage Examples
@@ -58,9 +60,8 @@ uv run fastmcp dev src/sokrates_mcp/main.py
 The server follows a modular design pattern:
 1. Tools are registered in `main.py` using FastMCP decorators
 2. Dependency management via pyproject.toml
-3. Configuration files stored in `.my_mcp_server/` directory
+3. Configuration files stored in `$HOME/.sokrates-mcp/` directory
 
-![Architecture Diagram](https://via.placeholder.com/600x400?text=MCP+Server+Architecture)
 
 ## Contributing Guidelines
 
@@ -70,8 +71,6 @@ The server follows a modular design pattern:
    - Clear description of changes
    - Updated tests (see Testing section)
    - Documentation updates
-
-Join our [Slack community](https://example.com/slack) for collaboration.
 
 ## Available Tools
 
@@ -123,9 +122,9 @@ Join our [Slack community](https://example.com/slack) for collaboration.
 
 ## Project Structure
 
-- `main.py`: Sets up the MCP server and registers tools
-- `mcp_config.py`: Configuration management
-- `workflow.py`: Business logic for prompt refinement and execution
+- `src/sokrates_mcp/main.py`: Sets up the MCP server and registers tools
+- `src/sokrates_mcp/mcp_config.py`: Configuration management
+- `src/sokrates_mcp/workflow.py`: Business logic for prompt refinement and execution
 - `pyproject.toml`: Dependency management
 
 ## Testing & Validation
@@ -134,15 +133,6 @@ We use `pytest` for testing:
 ```bash
 uv run pytest tests/
 ```
-
-## Dependencies & Licenses
-
-| Package | Version | License |
-|---------|---------|---------|
-| fastmcp | 0.1.2   | MIT     |
-| uv      | 0.3.4   | Apache-2|
-
-Full license text in `LICENSE.md`
 
 ## Script List
 
@@ -185,16 +175,6 @@ Demonstrates a basic Model Context Protocol (MCP) client using the fastmcp libra
   ```bash
   uvicorn src.mcp_client_example:main --factory
   ```
-
-## Roadmap & Future Work
-
-Q2 2025:
-- Add authentication middleware
-- Implement tool versioning
-
-Challenges:
-- Cross-platform compatibility testing
-- Large file handling optimizations
 
 ## FAQ & Troubleshooting
 

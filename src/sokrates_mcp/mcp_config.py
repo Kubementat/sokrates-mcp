@@ -7,7 +7,7 @@
 # - config_file_path: Path to the YAML configuration file (default: ~/.sokrates-mcp/config.yml)
 # - api_endpoint: API endpoint URL (default: http://localhost:1234/v1)
 # - api_key: API key for authentication (default: mykey)
-# - model: Model name to use (default: qwen/qwen3-8b)
+# - model: Model name to use (default: qwen/qwen3-4b-2507)
 #
 # Usage example:
 #   config = MCPConfig(api_endpoint="https://api.example.com", model="my-model")
@@ -20,7 +20,7 @@ from sokrates import Config
 
 DEFAULT_API_ENDPOINT = "http://localhost:1234/v1"
 DEFAULT_API_KEY = "mykey"
-DEFAULT_MODEL = "qwen/qwen3-8b"
+DEFAULT_MODEL = "qwen/qwen3-4b-2507"
 
 class MCPConfig:
     """Configuration management class for MCP server.
@@ -33,19 +33,14 @@ class MCPConfig:
         DEFAULT_PROMPTS_DIRECTORY (str): Default directory for prompts
         DEFAULT_REFINEMENT_PROMPT_FILENAME (str): Default refinement prompt filename
         DEFAULT_REFINEMENT_CODING_PROMPT_FILENAME (str): Default refinement coding prompt filename
-
-    Methods:
-        __init__: Initialize the configuration with optional parameters
-        _load_config_from_file: Load configuration from file
-        _validate_url: Validate URL format
-        _validate_api_key: Validate API key format
-        _validate_model_name: Validate model name format
-        _ensure_directory_exists: Ensure directory exists and is valid
     """
     CONFIG_FILE_PATH = os.path.expanduser("~/.sokrates-mcp/config.yml")
     DEFAULT_PROMPTS_DIRECTORY = Config().prompts_directory
     DEFAULT_REFINEMENT_PROMPT_FILENAME = "refine-prompt.md"
     DEFAULT_REFINEMENT_CODING_PROMPT_FILENAME = "refine-coding-v3.md"
+    PROVIDER_TYPES = [
+        "openai"
+    ]
     
     def __init__(self, config_file_path=CONFIG_FILE_PATH, api_endpoint = DEFAULT_API_ENDPOINT, api_key = DEFAULT_API_KEY, model= DEFAULT_MODEL, verbose=False):
         """Initialize MCP configuration.
@@ -69,19 +64,6 @@ class MCPConfig:
         self.config_file_path = config_file_path
         config_data = self._load_config_from_file(self.config_file_path)
 
-        # Validate and set configuration values (ensure all are strings)
-        self.api_endpoint = str(config_data.get("api_endpoint", api_endpoint))
-        if not self._validate_url(self.api_endpoint):
-            raise ValueError(f"Invalid API endpoint URL: {self.api_endpoint}")
-
-        self.api_key = str(config_data.get("api_key", api_key))
-        if not self._validate_api_key(self.api_key):
-            raise ValueError(f"Invalid API key format: {self.api_key}")
-
-        self.model = str(config_data.get("model", model))
-        if not self._validate_model_name(self.model):
-            raise ValueError(f"Invalid model name: {self.model}")
-
         prompts_directory = config_data.get("prompts_directory", self.DEFAULT_PROMPTS_DIRECTORY)
         if not self._ensure_directory_exists(prompts_directory):
             raise ValueError(f"Invalid prompts directory: {prompts_directory}")
@@ -96,13 +78,68 @@ class MCPConfig:
         if not os.path.exists(os.path.join(prompts_directory, refinement_coding_prompt_filename)):
             raise FileNotFoundError(f"Refinement coding prompt file not found: {refinement_coding_prompt_filename}")
         self.refinement_coding_prompt_filename = refinement_coding_prompt_filename
-        
+    
+
+        self._configure_providers(config_data=config_data)
         self.logger.info(f"Configuration loaded from {self.config_file_path}:")
-        self.logger.info(f"  API Endpoint: {self.api_endpoint}")
-        self.logger.info(f"  Model: {self.model}")
         self.logger.info(f"  Prompts Directory: {self.prompts_directory}")
         self.logger.info(f"  Refinement Prompt Filename: {self.refinement_prompt_filename}")
         self.logger.info(f"  Refinement Coding Prompt Filename: {self.refinement_coding_prompt_filename}")
+        self.logger.info(f"  Default Provider: {self.default_provider}")
+        for prov in self.providers:
+            self.logger.info(f"Configured provider name: {prov["name"]} , api_endpoint: {prov["api_endpoint"]} , default_model: {prov["default_model"]}")
+
+    def available_providers(self):
+        return list(map(lambda prov: {'name': prov['name'], 'api_endpoint': prov['api_endpoint'], 'type': prov['type']}, self.providers))
+
+    def get_provider_by_name(self, provider_name):
+        providers = list(filter(lambda x: x['name'] == provider_name, self.providers))
+        return providers[0]
+
+    def get_default_provider(self):
+        return self.get_provider_by_name(self.default_provider)
+
+    def _configure_providers(self, config_data):
+        # configure defaults if not config_data could be loaded
+        self.providers = config_data.get("providers", {})
+        if len(self.providers) < 1:
+            self.providers = [
+                {
+                    "name": "default",
+                    "type": "openai",
+                    "api_endpoint": DEFAULT_API_ENDPOINT,
+                    "api_key": DEFAULT_API_KEY,
+                    "default_model": DEFAULT_MODEL
+                }
+            ]
+            self.default_provider = "default"
+            return
+        
+        provider_names = []
+        for provider in self.providers:
+            if provider.get("name") in provider_names:
+                raise ValueError("Duplicate provider names in the config providers section")
+            self._validate_provider(provider)
+            provider_names.append(provider['name'])
+
+        if not config_data['default_provider']:
+            raise ValueError(f"No default_provider was configured at the root level of the config file in {self.config_file_path}")
+        self.default_provider = config_data['default_provider']
+
+    def _validate_provider(self, provider):
+        self._validate_provider_name(provider.get("name", ""))
+        self._validate_provider_type(provider.get("type", ""))
+        self._validate_url(provider.get("api_endpoint", ""))
+        self._validate_api_key(provider.get("api_key", ""))
+        self._validate_model_name(provider.get("default_model", ""))
+
+    def _validate_provider_name(self, provider_name):
+        if len(provider_name) < 1:
+            raise ValueError("The provider name: {provider_name} is not a valid provider name")
+
+    def _validate_provider_type(self, provider_type):
+        if not provider_type in self.PROVIDER_TYPES:
+            raise ValueError(f"The provider type: {provider_type} is not supported by sokrates-mcp")
 
     def _validate_url(self, url):
         """Validate URL format.
@@ -117,7 +154,7 @@ class MCPConfig:
             result = urlparse(url)
             return all([result.scheme in ['http', 'https'], result.netloc])
         except:
-            return False
+            raise ValueError("The api_endpoint: {url} is not a valid llm API endpoint")
 
     def _validate_api_key(self, api_key):
         """Validate API key format.
@@ -128,8 +165,8 @@ class MCPConfig:
         Returns:
             bool: True if valid API key, False otherwise
         """
-        # For testing purposes, allow shorter keys but still enforce alphanumeric + special chars
-        return all(c.isalnum() or c in '-_=+.' for c in api_key)
+        if len(api_key) < 1:
+            raise ValueError("The api key is empty")
 
     def _validate_model_name(self, model):
         """Validate model name format.
@@ -140,7 +177,8 @@ class MCPConfig:
         Returns:
             bool: True if valid model name, False otherwise
         """
-        return bool(model) and all(c.isalnum() or c in '/-_.@' for c in model)
+        if len(model) < 1:
+            raise ValueError("The model is empty")
 
     def _ensure_directory_exists(self, directory_path):
         """Ensure directory exists and is valid.
