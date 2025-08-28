@@ -14,6 +14,8 @@
 import os
 import yaml
 import logging
+from urllib.parse import urlparse
+from pathlib import Path
 from sokrates import Config
 
 DEFAULT_API_ENDPOINT = "http://localhost:1234/v1"
@@ -35,9 +37,13 @@ class MCPConfig:
     Methods:
         __init__: Initialize the configuration with optional parameters
         _load_config_from_file: Load configuration from file
+        _validate_url: Validate URL format
+        _validate_api_key: Validate API key format
+        _validate_model_name: Validate model name format
+        _ensure_directory_exists: Ensure directory exists and is valid
     """
     CONFIG_FILE_PATH = os.path.expanduser("~/.sokrates-mcp/config.yml")
-    DEFAULT_PROMPTS_DIRECTORY = Config.DEFAULT_PROMPTS_DIRECTORY
+    DEFAULT_PROMPTS_DIRECTORY = Config().prompts_directory
     DEFAULT_REFINEMENT_PROMPT_FILENAME = "refine-prompt.md"
     DEFAULT_REFINEMENT_CODING_PROMPT_FILENAME = "refine-coding-v3.md"
     
@@ -63,12 +69,33 @@ class MCPConfig:
         self.config_file_path = config_file_path
         config_data = self._load_config_from_file(self.config_file_path)
 
-        self.api_endpoint = config_data.get("api_endpoint", api_endpoint)
-        self.api_key = config_data.get("api_key", api_key)
-        self.model = config_data.get("model", model)
-        self.prompts_directory = config_data.get("prompts_directory", self.DEFAULT_PROMPTS_DIRECTORY)
-        self.refinement_prompt_filename = config_data.get("refinement_prompt_filename", self.DEFAULT_REFINEMENT_PROMPT_FILENAME)
-        self.refinement_coding_prompt_filename = config_data.get("refinement_coding_prompt_filename", self.DEFAULT_REFINEMENT_CODING_PROMPT_FILENAME)
+        # Validate and set configuration values (ensure all are strings)
+        self.api_endpoint = str(config_data.get("api_endpoint", api_endpoint))
+        if not self._validate_url(self.api_endpoint):
+            raise ValueError(f"Invalid API endpoint URL: {self.api_endpoint}")
+
+        self.api_key = str(config_data.get("api_key", api_key))
+        if not self._validate_api_key(self.api_key):
+            raise ValueError(f"Invalid API key format: {self.api_key}")
+
+        self.model = str(config_data.get("model", model))
+        if not self._validate_model_name(self.model):
+            raise ValueError(f"Invalid model name: {self.model}")
+
+        prompts_directory = config_data.get("prompts_directory", self.DEFAULT_PROMPTS_DIRECTORY)
+        if not self._ensure_directory_exists(prompts_directory):
+            raise ValueError(f"Invalid prompts directory: {prompts_directory}")
+        self.prompts_directory = prompts_directory
+
+        refinement_prompt_filename = config_data.get("refinement_prompt_filename", self.DEFAULT_REFINEMENT_PROMPT_FILENAME)
+        if not os.path.exists(os.path.join(prompts_directory, refinement_prompt_filename)):
+            raise FileNotFoundError(f"Refinement prompt file not found: {refinement_prompt_filename}")
+        self.refinement_prompt_filename = refinement_prompt_filename
+
+        refinement_coding_prompt_filename = config_data.get("refinement_coding_prompt_filename", self.DEFAULT_REFINEMENT_CODING_PROMPT_FILENAME)
+        if not os.path.exists(os.path.join(prompts_directory, refinement_coding_prompt_filename)):
+            raise FileNotFoundError(f"Refinement coding prompt file not found: {refinement_coding_prompt_filename}")
+        self.refinement_coding_prompt_filename = refinement_coding_prompt_filename
         
         self.logger.info(f"Configuration loaded from {self.config_file_path}:")
         self.logger.info(f"  API Endpoint: {self.api_endpoint}")
@@ -76,6 +103,62 @@ class MCPConfig:
         self.logger.info(f"  Prompts Directory: {self.prompts_directory}")
         self.logger.info(f"  Refinement Prompt Filename: {self.refinement_prompt_filename}")
         self.logger.info(f"  Refinement Coding Prompt Filename: {self.refinement_coding_prompt_filename}")
+
+    def _validate_url(self, url):
+        """Validate URL format.
+
+        Args:
+            url (str): URL to validate
+
+        Returns:
+            bool: True if valid URL, False otherwise
+        """
+        try:
+            result = urlparse(url)
+            return all([result.scheme in ['http', 'https'], result.netloc])
+        except:
+            return False
+
+    def _validate_api_key(self, api_key):
+        """Validate API key format.
+
+        Args:
+            api_key (str): API key to validate
+
+        Returns:
+            bool: True if valid API key, False otherwise
+        """
+        # For testing purposes, allow shorter keys but still enforce alphanumeric + special chars
+        return all(c.isalnum() or c in '-_=+.' for c in api_key)
+
+    def _validate_model_name(self, model):
+        """Validate model name format.
+
+        Args:
+            model (str): Model name to validate
+
+        Returns:
+            bool: True if valid model name, False otherwise
+        """
+        return bool(model) and all(c.isalnum() or c in '/-_.@' for c in model)
+
+    def _ensure_directory_exists(self, directory_path):
+        """Ensure directory exists and is valid.
+
+        Args:
+            directory_path (str): Directory path to check/validate
+
+        Returns:
+            bool: True if directory exists or was created successfully, False otherwise
+        """
+        try:
+            path = Path(directory_path)
+            if not path.exists():
+                path.mkdir(parents=True, exist_ok=True)
+            return path.is_dir()
+        except Exception as e:
+            self.logger.error(f"Error ensuring directory exists: {e}")
+            return False
 
     def _load_config_from_file(self, config_file_path):
         """Load configuration data from a YAML file.
@@ -88,14 +171,23 @@ class MCPConfig:
                   or cannot be parsed
 
         Side Effects:
-            Prints error messages to stdout if file reading or parsing fails
+            Logs error messages if file reading or parsing fails
         """
-        if os.path.exists(config_file_path):
-            try:
+        try:
+            # Ensure config directory exists
+            Path(config_file_path).parent.mkdir(parents=True, exist_ok=True)
+
+            if os.path.exists(config_file_path):
                 with open(config_file_path, 'r') as f:
-                    return yaml.safe_load(f)
-            except yaml.YAMLError as e:
-                print(f"Error parsing YAML config file {config_file_path}: {e}")
-            except Exception as e:
-                print(f"Error reading config file {config_file_path}: {e}")
+                    return yaml.safe_load(f) or {}
+            else:
+                self.logger.warning(f"Config file not found at {config_file_path}. Using defaults.")
+                # Create empty config file
+                with open(config_file_path, 'w') as f:
+                    yaml.dump({}, f)
+                return {}
+        except yaml.YAMLError as e:
+            self.logger.error(f"Error parsing YAML config file {config_file_path}: {e}")
+        except Exception as e:
+            self.logger.error(f"Error reading config file {config_file_path}: {e}")
         return {}

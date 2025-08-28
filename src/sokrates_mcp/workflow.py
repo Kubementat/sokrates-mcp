@@ -1,14 +1,16 @@
 from fastmcp import Context
 from .mcp_config import MCPConfig
 from sokrates import FileHelper, RefinementWorkflow, LLMApi, PromptRefiner, IdeaGenerationWorkflow
+from sokrates.coding.code_review_workflow import run_code_review
 from pathlib import Path
+from typing import List
 class Workflow:
   
   WORKFLOW_COMPLETION_MESSAGE = "Workflow completed."
   
   def __init__(self, config: MCPConfig):
     self.config = config
-    self.llm_api = LLMApi()
+    self.llm_api = LLMApi(api_endpoint=config.api_endpoint, api_key=config.api_key)
     self.prompt_refiner = PromptRefiner()
     self.refinement_workflow = RefinementWorkflow(api_endpoint=config.api_endpoint, api_key=config.api_key, model=config.model)
     
@@ -72,7 +74,7 @@ class Workflow:
   async def breakdown_task(self, task: str, ctx: Context, model: str) -> str:
     model = self.get_model(model)
     await ctx.info(f"Task break-down started with model: {model} . Waiting for the response from the LLM...")
-    result = self.refinement_workflow.breakdown_task(task=task, model=model)
+    result = self.refinement_workflow.breakdown_task(task=task)
     await ctx.info(self.WORKFLOW_COMPLETION_MESSAGE)
     return result
   
@@ -112,6 +114,25 @@ class Workflow:
     result_text = f"\n---\n".join(results)
     await ctx.info(self.WORKFLOW_COMPLETION_MESSAGE)
     return result_text
+  
+  async def generate_code_review(self, ctx: Context, source_file_paths: List[str], target_directory: str, model:str = None, review_type:str = None):
+    used_model = model
+    if model == 'default' or model is None:
+      used_model = self.config.model
+    await ctx.info(f"Generating code review of type: {review_type} - using model: {model} - for source files: {source_file_paths} ...")
+    run_code_review(file_paths=source_file_paths,
+                    directory_path=None,
+                    output_dir=target_directory,
+                    review_type=review_type, 
+                    api_endpoint=self.config.api_endpoint,
+                    api_key=self.config.api_key,
+                    model=used_model)
+    # TODO: also include some basic info of the review results (e.g. the complete review file list)
+    # so that the caller gains more information about the result and file locations
+    await ctx.info(self.WORKFLOW_COMPLETION_MESSAGE)
+    return f"Successfully generated review files in {target_directory} ."
+    
+    
 
   async def list_available_models(self, ctx: Context) -> str:
     await ctx.info("Retrieving list of available models...")

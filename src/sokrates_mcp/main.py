@@ -220,6 +220,20 @@ async def generate_ideas_on_topic(
     return await workflow.generate_ideas_on_topic(ctx=ctx, model=model, topic=topic, idea_count=idea_count, temperature=temperature)
 
 @mcp.tool(
+    name="generate_code_review",
+    description="Generates a code review in markdown format in a file on the local file system and returns the path to the code review. It supports multiple types of code reviews.",
+    tags={"coding", "review", "markdown", "file"}
+)
+async def generate_code_review(
+    ctx: Context,
+    source_file_paths: Annotated[list, Field(description="A list of source file paths that should be reviewed. The paths should be absolute paths in the local filesystem.")],
+    target_directory: Annotated[str, Field(description="The directory to store the resulting review markdown files. This should point to the desired target path for the markdown files on the local filesystem.")],
+    model: Annotated[str, Field(description="[Optional] The name of the model that should be used for the generation. The default model name is 'default', which will pick the server's default model.", default='default')],
+    review_type: Annotated[str, Field(description="[Optional] The type of review to execute. Choices are: 'style', 'security', 'performance', 'quality' . The default is 'quality'", default='quality')]
+    ) -> str:
+    return await workflow.generate_code_review(ctx=ctx, model=model, review_type=review_type, source_file_paths=source_file_paths, target_directory=target_directory)
+
+@mcp.tool(
     name="list_available_models",
     description="Lists all available large language models accessible by the sokrates-mcp server.",
     tags={"refinement", "llm", "models", "list"}
