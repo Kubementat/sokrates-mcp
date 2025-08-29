@@ -9,7 +9,9 @@ A MCP server offering tools for prompt refinement and execution workflows using 
 - Prompt refinement with different types (code/default)
 - External LLM processing
 - Task breakdown into sub-tasks
-- Modular configuration management
+- Create code reviews for Python source files
+- Generate random ideas
+- Generate ideas to a topic
 
 Have a look at the [sokrates library](https://github.com/Kubementat/sokrates).
 
