@@ -1,25 +1,36 @@
 # sokrates-mcp
 
-A MCP server offering tools for prompt refinement and execution workflows using the FastMCP framework.
+A MCP server offering tools for prompt refinement and execution workflows using the FastMCP framework and the `sokrates` python library.
 
 ## Features
 
-- Model listing
+- Multiple provider/APU support
+- Available Model/Provider listing
 - Prompt refinement with different types (code/default)
 - External LLM processing
 - Task breakdown into sub-tasks
 - Modular configuration management
+
+Have a look at the [sokrates library](https://github.com/Kubementat/sokrates).
 
 ## Installation & Setup
 
 ### Prerequisites
 
 Ensure you have:
-* Python 3.8+
+* Python 3.10+
 * uv (fast package installer)
-* FastMCP development environment
 
-### Local Configuration
+### Install from PyPi
+```bash
+pip install sokrates-mcp
+
+# or using uv (recommended)
+## basic version: 
+uv pip install sokrates-mcp
+```
+
+### Alternative - Local Configuration from git
 
 1. Clone the repository if hosted:
 ```bash
@@ -31,12 +42,75 @@ cd sokrates-mcp
 ```bash
 uv sync
 ```
-3. Configure server settings
+
+### Setup Server Configuration File
+
+#### Via git installed version
 ```bash
 mkdir $HOME/.sokrates-mcp
 cp config.yml.example $HOME/.sokrates-mcp/config.yml
 # edit the according endpoints to your use case
 vim $HOME/.sokrates-mcp/config.yml
+```
+
+#### From scratch
+Create the configuration file:
+```bash
+mkdir $HOME/.sokrates-mcp
+vim $HOME/.sokrates-mcp/config.yml
+```
+
+Then use this as template and adjust it to your use case:
+```yaml
+refinement_prompt_filename: refine-prompt.md
+refinement_coding_prompt_filename: refine-coding-v3.md
+
+# providers
+default_provider: local
+providers:
+  - name: local
+    type: openai
+    api_endpoint: http://localhost:1234/v1
+    api_key: "not-required"
+    default_model: "qwen/qwen3-4b-2507"
+  - name: external
+    type: openai
+    api_endpoint: http://CHANGEME/v1
+    api_key: CHANGEME
+    default_model: CHANGEME
+```
+
+### Setup as mcp server in other tools (Example for LM Studio)
+
+#### For local Git installed version
+```yaml
+{
+  "mcpServers": {
+    "sokrates": {
+      "command": "uv",
+      "args": [
+        "run",
+        "sokrates-mcp"
+      ],
+      "cwd": "YOUR_PATH_TO_sokrates-mcp",
+      "timeout": 600000
+    }
+  }
+}
+```
+
+#### via uvx
+```yaml
+{
+  "mcpServers": {
+    "sokrates": {
+      "command": "uvx",
+      "args": [
+        "sokrates-mcp"
+      ]
+    }
+  }
+}
 ```
 
 ## Usage Examples
@@ -47,12 +121,9 @@ vim $HOME/.sokrates-mcp/config.yml
 uv run sokrates-mcp
 ```
 
-### Development Mode
-
+### Listing available command line options
 ```bash
-# TODO: this is not working right now
-uv run fastmcp dev src/sokrates_mcp/main.py
-# Auto-reloads on code changes with detailed logs
+uv run sokrates-mcp --help
 ```
 
 ## Architecture & Technical Details
@@ -127,12 +198,6 @@ The server follows a modular design pattern:
 - `src/sokrates_mcp/workflow.py`: Business logic for prompt refinement and execution
 - `pyproject.toml`: Dependency management
 
-## Testing & Validation
-
-We use `pytest` for testing:
-```bash
-uv run pytest tests/
-```
 
 ## Script List
 
@@ -166,6 +231,7 @@ Implements the business logic for prompt refinement and execution workflows. Con
 
 ### `src/mcp_client_example.py`
 Demonstrates a basic Model Context Protocol (MCP) client using the fastmcp library. Defines a simple model and registers it with the client.
+
 #### Usage
 - Run as a standalone script:
   ```bash
@@ -176,26 +242,18 @@ Demonstrates a basic Model Context Protocol (MCP) client using the fastmcp libra
   uvicorn src.mcp_client_example:main --factory
   ```
 
-## FAQ & Troubleshooting
-
-**Q:** How to change the server port?
-**A:** Set `FASTMCP_PORT` environment variable before starting:
-
-```bash
-export FASTMCP_PORT=8080
-uv run python main.py
-```
-
 **Common Error:**
 If you see "ModuleNotFoundError: fastmcp", ensure:
 1. Dependencies are installed (`uv pip install .`)
 2. Python virtual environment is activated
 
-## Additional Resources
-
-- [MCP Specification Documentation](https://mcp-spec.readthedocs.io)
-
 ## Changelog
+
+**0.2.0 (Aug 2025)**
+- First published version
+- Update to latest sokrates library version
+- bugfixes and cleanup
+- multi provider/API support in the configuration file 
 
 **0.1.5 (July 2025)**
 - Updated README with comprehensive documentation
