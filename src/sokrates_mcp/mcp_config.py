@@ -8,6 +8,7 @@
 # - api_endpoint: API endpoint URL (default: http://localhost:1234/v1)
 # - api_key: API key for authentication (default: mykey)
 # - model: Model name to use (default: qwen/qwen3-4b-2507)
+# - verbose: Enable verbose logging (default: False)
 #
 # Usage example:
 #   config = MCPConfig(api_endpoint="https://api.example.com", model="my-model")
@@ -21,6 +22,15 @@ from sokrates import Config
 DEFAULT_API_ENDPOINT = "http://localhost:1234/v1"
 DEFAULT_API_KEY = "mykey"
 DEFAULT_MODEL = "qwen/qwen3-4b-2507"
+DEFAULT_PROVIDER_NAME = "default"
+DEFAULT_PROVIDER_TYPE = "openai"
+DEFAULT_PROVIDER_CONFIGURATION = {
+                    "name": DEFAULT_PROVIDER_NAME,
+                    "type": DEFAULT_PROVIDER_TYPE,
+                    "api_endpoint": DEFAULT_API_ENDPOINT,
+                    "api_key": DEFAULT_API_KEY,
+                    "default_model": DEFAULT_MODEL
+                }
 
 class MCPConfig:
     """Configuration management class for MCP server.
@@ -33,6 +43,7 @@ class MCPConfig:
         DEFAULT_PROMPTS_DIRECTORY (str): Default directory for prompts
         DEFAULT_REFINEMENT_PROMPT_FILENAME (str): Default refinement prompt filename
         DEFAULT_REFINEMENT_CODING_PROMPT_FILENAME (str): Default refinement coding prompt filename
+        PROVIDER_TYPES (list): List of supported provider types
     """
     CONFIG_FILE_PATH = os.path.expanduser("~/.sokrates-mcp/config.yml")
     DEFAULT_PROMPTS_DIRECTORY = Config().prompts_directory
@@ -104,15 +115,9 @@ class MCPConfig:
         self.providers = config_data.get("providers", {})
         if len(self.providers) < 1:
             self.providers = [
-                {
-                    "name": "default",
-                    "type": "openai",
-                    "api_endpoint": DEFAULT_API_ENDPOINT,
-                    "api_key": DEFAULT_API_KEY,
-                    "default_model": DEFAULT_MODEL
-                }
+                DEFAULT_PROVIDER_CONFIGURATION
             ]
-            self.default_provider = "default"
+            self.default_provider = DEFAULT_PROVIDER_NAME
             return
         
         provider_names = []
@@ -135,7 +140,7 @@ class MCPConfig:
 
     def _validate_provider_name(self, provider_name):
         if len(provider_name) < 1:
-            raise ValueError("The provider name: {provider_name} is not a valid provider name")
+            raise ValueError(f"The provider name: {provider_name} is not a valid provider name")
 
     def _validate_provider_type(self, provider_type):
         if not provider_type in self.PROVIDER_TYPES:
@@ -154,7 +159,7 @@ class MCPConfig:
             result = urlparse(url)
             return all([result.scheme in ['http', 'https'], result.netloc])
         except:
-            raise ValueError("The api_endpoint: {url} is not a valid llm API endpoint")
+            raise ValueError(f"The api_endpoint: {url} is not a valid llm API endpoint")
 
     def _validate_api_key(self, api_key):
         """Validate API key format.
