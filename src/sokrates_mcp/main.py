@@ -104,6 +104,7 @@ from .workflow import Workflow
 from fastmcp import FastMCP, Context
 import logging
 import os
+import argparse
 
 MCP_NAME = "sokrates-mcp"
 VERSION = "0.2.0"
@@ -310,8 +311,22 @@ async def list_available_providers(ctx: Context):
     return await workflow.list_available_providers(ctx=ctx)
 
 def main():
-    mcp.run()
-    # mcp.run(transport="streamable-http")
+    # Set up argument parsing
+    parser = argparse.ArgumentParser(description='Sokrates MCP Server')
+    parser.add_argument('--transport', choices=['stdio', 'sse', 'http'], default='stdio',
+                       help='Transport method (default: stdio)')
+    parser.add_argument('--host', type=str, default="127.0.0.1",
+                       help='host for HTTP and sse transport (default: 127.0.0.1)')
+    parser.add_argument('--port', type=int, default=8000,
+                       help='Port number for HTTP transport (default: 8000)')
+    
+    args = parser.parse_args()
+    
+    # Run the MCP server with specified transport and port
+    if args.transport == 'stdio':
+        mcp.run(transport=args.transport)
+    else:
+        mcp.run(transport=args.transport, port=args.port, host=args.host)
 
 if __name__ == "__main__":
     main()

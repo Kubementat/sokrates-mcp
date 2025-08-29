@@ -5,8 +5,8 @@ description = "A templated MCP server for demonstration and quick start."
 requires-python = ">=3.10"
 dependencies = [
     "fastmcp",
-#    "sokrates",
-    "sokrates @ file:///home/verfeinerer/dev/os_projects/sokrates",
+    "sokrates",
+#    "sokrates @ file:///home/verfeinerer/dev/os_projects/sokrates",
     "pydantic",
     "PyYAML"
 ]

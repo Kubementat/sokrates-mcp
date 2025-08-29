@@ -1066,7 +1066,7 @@ wheels = [
 [[package]]
 name = "sokrates"
 version = "0.9.2"
-source = { directory = "../sokrates" }
+source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "colorama" },
     { name = "dotenv" },
@@ -1077,26 +1077,10 @@ dependencies = [
     { name = "requests" },
     { name = "tabulate" },
 ]
-
-[package.metadata]
-requires-dist = [
-    { name = "colorama" },
-    { name = "dotenv" },
-    { name = "html2text" },
-    { name = "markdownify" },
-    { name = "numpy", marker = "extra == 'voice'", specifier = ">=1.22.0" },
-    { name = "openai" },
-    { name = "openai-whisper", marker = "extra == 'voice'", specifier = ">=2023.10.1" },
-    { name = "psutil" },
-    { name = "pyaudio", marker = "extra == 'voice'" },
-    { name = "pytest", marker = "extra == 'dev'" },
-    { name = "pytest-cov", marker = "extra == 'dev'" },
-    { name = "pytest-mock", marker = "extra == 'dev'" },
-    { name = "requests" },
-    { name = "tabulate" },
-    { name = "tts", marker = "extra == 'voice'", specifier = ">=0.12.0" },
+sdist = { url = "https://files.pythonhosted.org/packages/23/21/4e45ea7bcb86dcf6b6879ba926e5d6430075908f3e27671f6d08590481c1/sokrates-0.9.2.tar.gz", hash = "sha256:e9f4074bca0b64efec5d51ac90d2522740912d1f1a58e37c4226701a9e5ec190", size = 343269, upload-time = "2025-08-25T10:46:23.4Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/c1/ce/30cf1322a7e214050914d647093ae453564c55287002e089ddf02eb99335/sokrates-0.9.2-py3-none-any.whl", hash = "sha256:5aa91d3f0d84ee4c5bada8855dd4daf1c515c15e5db4dd2e7b8b97e269a70a49", size = 164937, upload-time = "2025-08-25T10:46:21.801Z" },
 ]
-provides-extras = ["voice", "dev"]
 
 [[package]]
 name = "sokrates-mcp"
@@ -1114,7 +1098,7 @@ requires-dist = [
     { name = "fastmcp" },
     { name = "pydantic" },
     { name = "pyyaml" },
-    { name = "sokrates", directory = "../sokrates" },
+    { name = "sokrates" },
 ]
 
 [[package]]
