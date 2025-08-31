@@ -1,9 +1,14 @@
-from fastmcp import Context
-from .mcp_config import MCPConfig
-from sokrates import FileHelper, RefinementWorkflow, LLMApi, PromptRefiner, IdeaGenerationWorkflow
-from sokrates.coding.code_review_workflow import run_code_review
 from pathlib import Path
 from typing import List
+
+from fastmcp import Context
+
+from sokrates import FileHelper, RefinementWorkflow, LLMApi, PromptRefiner, IdeaGenerationWorkflow
+from sokrates.coding.code_review_workflow import run_code_review
+
+from .mcp_config import MCPConfig
+from .utils import Utils
+
 class Workflow:
   
   WORKFLOW_COMPLETION_MESSAGE = "Workflow completed."
@@ -289,5 +294,50 @@ class Workflow:
 
     model_list = "\n".join([f"- {model}" for model in models])
     result = f"{api_headline}\n# List of available models\n{model_list}"
+    await ctx.info(self.WORKFLOW_COMPLETION_MESSAGE)
+    return result
+  
+  async def store_to_file(self, ctx: Context, file_path: str, file_content: str) -> str:
+    """Store the provided content to a file on disk
+
+    """
+    await ctx.info(f"Storing file to: {file_path} ...")
+    if not file_path:
+      raise ValueError("No file_path provided.")
+    if not file_content:
+      raise ValueError("No file_content provided.")
+    
+    FileHelper.write_to_file(file_path=file_path, content=file_content)
+
+    result = f"The file has been stored to {file_path}"
+    await ctx.info(self.WORKFLOW_COMPLETION_MESSAGE)
+    return result
+  
+  async def read_from_file(self, ctx: Context, file_path: str) -> str:
+    """Read content of the provided file path
+
+    """
+    await ctx.info(f"Reading file from: {file_path} ...")
+    if not file_path:
+      raise ValueError("No file_path provided.")
+    if not Path(file_path).is_file():
+      raise ValueError("No file exists at the given file path.")
+
+    content = FileHelper.read_file(file_path=file_path)
+    result = f"<file source_file_path='{file_path}'>\n{content}\n</file>"
+    await ctx.info(self.WORKFLOW_COMPLETION_MESSAGE)
+    return result
+  
+  async def roll_dice(self, ctx: Context, number_of_dice: int=1, side_count: int=6, number_of_rolls: int=1) -> str:
+    """Roll a dice with the provided number of sides and return the result
+
+    """
+    await ctx.info(f"Throwing {number_of_dice} dice with {side_count} sides {number_of_rolls} times ...")
+    result = ""
+    for throw_number in range(1,number_of_rolls):
+      result = f"{result}# Roll {throw_number}\n"
+      for dice_number in range(1, number_of_dice):
+        dice_result = Utils.rand_int_inclusive(1, side_count)
+        result = f"- Dice {dice_number} result: {dice_result}\n"
     await ctx.info(self.WORKFLOW_COMPLETION_MESSAGE)
     return result

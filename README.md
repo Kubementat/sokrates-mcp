@@ -186,7 +186,7 @@ The server follows a modular design pattern:
 ### workflow.py
 
 - **Workflow** class: Implements the business logic for prompt refinement and execution.
-  - Methods:
+  -  e.g.:
     - `refine_prompt`: Refines a given prompt
     - `refine_and_execute_external_prompt`: Refines and executes a prompt with an external LLM
     - `handover_prompt`: Hands over a prompt to an external LLM for processing
@@ -250,6 +250,13 @@ If you see "ModuleNotFoundError: fastmcp", ensure:
 2. Python virtual environment is activated
 
 ## Changelog
+
+**0.3.0 (Aug 2025)**
+- adds new tools:
+    - roll_dice
+    - read_from_file
+    - store_to_file
+- refactorings - code quality - still ongoing
 
 **0.2.0 (Aug 2025)**
 - First published version

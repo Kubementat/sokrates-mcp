@@ -1,6 +1,6 @@
 [project]
 name = "sokrates-mcp"
-version = "0.2.0"
+version = "0.3.0"
 description = "A templated MCP server for demonstration and quick start."
 readme = "README.md"
 requires-python = ">=3.10"

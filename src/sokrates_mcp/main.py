@@ -295,6 +295,43 @@ async def generate_code_review(
     return await workflow.generate_code_review(ctx=ctx, provider=provider, model=model, review_type=review_type, source_directory=source_directory, source_file_paths=source_file_paths, target_directory=target_directory)
 
 @mcp.tool(
+    name="read_from_file",
+    description="Read a file from the local disk at the given file path and return it's contents.",
+    tags={"file","read","load","local"}
+)
+async def read_from_file(
+    ctx: Context, 
+    file_path: Annotated[str, Field(description="The source file path to use for reading the file. This should be an absolute file path on the disk.")], 
+    ) -> str:
+    return await workflow.read_from_file(ctx=ctx, file_path=file_path)
+
+@mcp.tool(
+    name="store_to_file",
+    description="Store a file with the provided content to the local drive at the provided file path.",
+    tags={"file","store","save","local"}
+)
+async def store_to_file(
+    ctx: Context, 
+    file_path: Annotated[str, Field(description="The target file path to use for storing the file. This should be an absolute file path on the disk.")],
+    file_content: Annotated[str, Field(description="The content that should be written to the target file.")],
+    ) -> str:
+    return await workflow.store_to_file(ctx=ctx, file_path=file_path, file_content=file_content)
+
+@mcp.tool(
+    name="roll_dice",
+    description="Rolls the given number of dice with the specified number of sides for the given number of times and returns the result. For example you can also instruct to throw a W12, which should then set the side_count to 12.",
+    tags={"dice","roll","random"}
+)
+async def roll_dice(
+    ctx: Context, 
+    number_of_dice: Annotated[int, Field(description="The number of dice to to use for rolling.", default=1)],
+    side_count: Annotated[int, Field(description="The number of sides of the dice to use for rolling.", default=6)],
+    number_of_rolls: Annotated[int, Field(description="The count of dice rolls to execute.", default=1)]
+    ) -> str:
+    return await workflow.roll_dice(ctx=ctx, number_of_dice=number_of_dice, side_count=side_count, number_of_rolls=number_of_rolls)
+
+
+@mcp.tool(
     name="list_available_models_for_provider",
     description="Lists all available large language models and the target api endpoint configured as provider for the sokrates-mcp server.",
     tags={"external","llm","models","list"}
