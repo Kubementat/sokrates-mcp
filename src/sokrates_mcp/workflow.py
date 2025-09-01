@@ -361,11 +361,13 @@ class Workflow:
     self.logger.info(f"Rolling {number_of_dice} dice with  {side_count} sides {number_of_rolls} times")
     await ctx.info(f"Throwing {number_of_dice} dice with {side_count} sides {number_of_rolls} times ...")
     result = ""
-    for throw_number in range(1,number_of_rolls):
+    for throw_number in range(1,number_of_rolls+1):
+      self.logger.info(f"Performing Roll {throw_number} ...")
       result = f"{result}# Roll {throw_number}\n"
-      for dice_number in range(1, number_of_dice):
+      for dice_number in range(1, number_of_dice+1):
         dice_result = Utils.rand_int_inclusive(1, side_count)
-        result = f"- Dice {dice_number} result: {dice_result}\n"
+        self.logger.info(f"Dice {dice_number} result:  {dice_result}")
+        result = f"{result}- Dice {dice_number} result: {dice_result}\n"
     await ctx.info(self.WORKFLOW_COMPLETION_MESSAGE)
     return result
   

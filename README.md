@@ -173,6 +173,9 @@ If you see "ModuleNotFoundError: fastmcp", ensure:
 
 ## Changelog
 
+**0.4.1 (Sep 2025)**
+- fix roll_dice tool
+
 **0.4.0 (Aug 2025)**
 - adds new tools:
   - read_files_from_directory
