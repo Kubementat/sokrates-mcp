@@ -1,4 +1,5 @@
 from pathlib import Path
+import logging
 from typing import List
 
 from fastmcp import Context
@@ -19,12 +20,8 @@ class Workflow:
     Args:
         config (MCPConfig): The MCP configuration object
     """
+    self.logger = logging.getLogger(f"{__name__}.{self.__class__.__name__}")
     self.config = config
-    default_provider = self.config.get_default_provider()
-    self.default_model = default_provider['default_model']
-    self.default_api_endpoint = default_provider['api_endpoint']
-    self.default_api_key = default_provider['api_key']
-
     self.prompt_refiner = PromptRefiner()
     
   def _get_model(self, provider, model=''):
@@ -81,7 +78,8 @@ class Workflow:
     """
     refinement_prompt = self.load_refinement_prompt(refinement_type)
     workflow = self._initialize_refinement_workflow(provider_name=provider, model=model)
-    
+    self.logger.info(f"Starting refinement workflow with provider: {provider} and model: {model}")
+
     await ctx.info(f"Prompt refinement and execution workflow started with refinement model: {workflow.model} . Waiting for the response from the LLM...")
     refined = workflow.refine_prompt(input_prompt=prompt, refinement_prompt=refinement_prompt)
     await ctx.info(self.WORKFLOW_COMPLETION_MESSAGE)
@@ -107,6 +105,8 @@ class Workflow:
     refinement_model = self._get_model(provider=prov, model=refinement_model)
     execution_model = self._get_model(provider=prov, model=execution_model)
 
+    self.logger.info(f"Starting refinement workflow with provider: {provider} with refinement model: {refinement_model} and execution model: {execution_model}")
+
     workflow = self._initialize_refinement_workflow(provider_name=provider, model=execution_model)
     await ctx.info(f"Prompt refinement and execution workflow started with refinement model: {refinement_model} and execution model {execution_model} . Waiting for the responses from the LLMs...")
     result = workflow.refine_and_send_prompt(input_prompt=prompt, refinement_prompt=refinement_prompt, refinement_model=refinement_model, execution_model=execution_model)
@@ -130,6 +130,7 @@ class Workflow:
     
     prov = self._get_provider(provider)
     model = self._get_model(provider=prov, model=model)
+    self.logger.info(f"Handing over prompt to provider: {provider} and model: {model}")
     llm_api = LLMApi(api_endpoint=prov['api_endpoint'], api_key=prov['api_key'])
 
     result = llm_api.send(prompt,model=model, temperature=temperature)
@@ -151,6 +152,7 @@ class Workflow:
     Returns:
         str: A JSON string containing the list of sub-tasks with complexity ratings.
     """
+    self.logger.info(f"Breaking down task with provider: {provider} and model: {model}")
     workflow = self._initialize_refinement_workflow(provider_name=provider, model=model)
     await ctx.info(f"Task break-down started with model: {workflow.model} . Waiting for the response from the LLM...")
     result = workflow.breakdown_task(task=task)
@@ -172,6 +174,8 @@ class Workflow:
     """
     prov = self._get_provider(provider)
     model = self._get_model(provider=prov, model=model)
+
+    self.logger.info(f"Generating random ideas with provider: {provider} and model: {model}")
     await ctx.info(f"Task `generate random ideas` started at provider: {prov['name']} with model: {model} , idea_count: {idea_count} and temperature: {temperature}. Waiting for the response from the LLM...")
 
     idea_generation_workflow = IdeaGenerationWorkflow(api_endpoint=prov['api_endpoint'],
@@ -205,6 +209,7 @@ class Workflow:
     prov = self._get_provider(provider)
     model = self._get_model(provider=prov, model=model)
 
+    self.logger.info(f"Generating ideas on topic with provider: {provider} and model: {model}")
     await ctx.info(f"Task `generate ideas on topic` started with topic: '{topic}' , model: {model} , idea_count: {idea_count} and temperature: {temperature}. Waiting for the response from the LLM...")
     idea_generation_workflow = IdeaGenerationWorkflow(api_endpoint=prov['api_endpoint'],
       api_key=prov['api_key'],
@@ -238,6 +243,7 @@ class Workflow:
     prov = self._get_provider(provider)
     model = self._get_model(provider=prov, model=model)
 
+    self.logger.info(f"Generating code review of type: {review_type} with provider: {provider} and model: {model}")
     await ctx.info(f"Generating code review of type: {review_type} - using model: {model} ...")
     run_code_review(file_paths=source_file_paths,
                     directory_path=source_directory,
@@ -261,6 +267,7 @@ class Workflow:
     Returns:
         str: Formatted list of configured providers.
     """
+    self.logger.info(f"Listing available providers")
     providers = self.config.available_providers()
     result = "# Configured providers"
     for prov in providers:
@@ -279,6 +286,7 @@ class Workflow:
     Returns:
         str: Formatted list of available models and API endpoint.
     """
+    self.logger.info(f"Listing models for provider: {provider_name}")
     await ctx.info(f"Retrieving endpoint information and list of available models for configured provider {provider_name} ...")
     if not provider_name:
       provider = self.config.get_default_provider()
@@ -302,6 +310,7 @@ class Workflow:
 
     """
     await ctx.info(f"Storing file to: {file_path} ...")
+    self.logger.info(f"Storing content to file: {file_path}")
     if not file_path:
       raise ValueError("No file_path provided.")
     if not file_content:
@@ -318,13 +327,30 @@ class Workflow:
 
     """
     await ctx.info(f"Reading file from: {file_path} ...")
-    if not file_path:
-      raise ValueError("No file_path provided.")
-    if not Path(file_path).is_file():
-      raise ValueError("No file exists at the given file path.")
-
-    content = FileHelper.read_file(file_path=file_path)
-    result = f"<file source_file_path='{file_path}'>\n{content}\n</file>"
+    templated_file = self._read_file_to_templated_format(file_path=file_path)
+    await ctx.info(self.WORKFLOW_COMPLETION_MESSAGE)
+    return templated_file
+  
+  async def read_files_from_directory(self, ctx: Context, directory_path: str, file_extensions: List[str]) -> str:
+    file_exts_str = '.*'
+    if file_extensions:
+      file_exts_str = ','.join(file_extensions)
+    self.logger.info(f"Reading content for directory: {directory_path}")
+    await ctx.info(f"Reading files from directory: {directory_path} with file extensions: {file_exts_str} ...")
+    all_files = FileHelper.directory_tree(directory=directory_path, file_extensions=file_extensions)
+    result = ""
+    for file_path in all_files:
+      file_content = self._read_file_to_templated_format(file_path)
+      result = "\n".join([result, file_content])
+    await ctx.info(self.WORKFLOW_COMPLETION_MESSAGE)
+    return result
+  
+  async def directory_tree(self, ctx: Context, directory_path: str) -> str:
+    self.logger.info(f"Listing directory tree for directory: {directory_path}")
+    await ctx.info(f"Listing files recursively for directory: {directory_path} ...")
+    all_file_paths = FileHelper.directory_tree(directory=directory_path)
+    result = f"Directory: {directory_path}\n{"\n- ".join(all_file_paths)}"
+    
     await ctx.info(self.WORKFLOW_COMPLETION_MESSAGE)
     return result
   
@@ -332,6 +358,7 @@ class Workflow:
     """Roll a dice with the provided number of sides and return the result
 
     """
+    self.logger.info(f"Rolling {number_of_dice} dice with  {side_count} sides {number_of_rolls} times")
     await ctx.info(f"Throwing {number_of_dice} dice with {side_count} sides {number_of_rolls} times ...")
     result = ""
     for throw_number in range(1,number_of_rolls):
@@ -341,3 +368,12 @@ class Workflow:
         result = f"- Dice {dice_number} result: {dice_result}\n"
     await ctx.info(self.WORKFLOW_COMPLETION_MESSAGE)
     return result
+  
+  def _read_file_to_templated_format(self, file_path: str) -> str:
+    if not file_path:
+      raise ValueError("No file_path provided.")
+    if not Path(file_path).is_file():
+      raise ValueError("No file exists at the given file path.")
+
+    content = FileHelper.read_file(file_path=file_path)
+    return f"<file source_file_path='{file_path}'>\n{content}\n</file>"

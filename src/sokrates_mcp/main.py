@@ -306,6 +306,30 @@ async def read_from_file(
     return await workflow.read_from_file(ctx=ctx, file_path=file_path)
 
 @mcp.tool(
+    name="read_files_from_directory",
+    description="Read files from the local disk from the given directory path and return the file contents. You can also provide a list of file extentsions to include optionally.",
+    tags={"directory","read","load","local"}
+)
+async def read_files_from_directory(
+    ctx: Context, 
+    directory_path: Annotated[str, Field(description="The source directory path to use for reading the files. This should be an absolute file path on the disk.")],
+    file_extensions: Annotated[list[str], Field(description="A list of file extensions to include when reading the files. For markdown files you could use ['.md']", default=None)],
+    ) -> str:
+    return await workflow.read_files_from_directory(ctx=ctx, directory_path=directory_path, file_extensions=file_extensions)
+
+@mcp.tool(
+    name="directory_tree",
+    description="Provides a recursive directory file listing for the given directory path.",
+    tags={"directory","list","local"}
+)
+async def directory_tree(
+    ctx: Context, 
+    directory_path: Annotated[str, Field(description="The source directory path to use for reading the files. This should be an absolute file path on the disk.")]
+    ) -> str:
+    return await workflow.directory_tree(ctx=ctx, directory_path=directory_path)
+
+
+@mcp.tool(
     name="store_to_file",
     description="Store a file with the provided content to the local drive at the provided file path.",
     tags={"file","store","save","local"}

@@ -120,12 +120,20 @@ providers:
 ### Starting the Server
 
 ```bash
+# from local git repo
 uv run sokrates-mcp
+
+# without checking out the git repo
+uvx sokrates-mcp
 ```
 
 ### Listing available command line options
 ```bash
+# from local git repo
 uv run sokrates-mcp --help
+
+# without checking out the git repo
+uvx sokrates-mcp --help
 ```
 
 ## Architecture & Technical Details
@@ -147,109 +155,29 @@ The server follows a modular design pattern:
 
 ## Available Tools
 
-### main.py
-
-- **refine_prompt**: Refines a given prompt by enriching it with additional context.
-  - Parameters:
-    - `prompt` (str): The input prompt to be refined
-    - `refinement_type` (str, optional): Type of refinement ('code' or 'default'). Default is 'default'
-    - `model` (str, optional): Model name for refinement. Default is 'default'
-
-- **refine_and_execute_external_prompt**: Refines a prompt and executes it with an external LLM.
-  - Parameters:
-    - `prompt` (str): The input prompt to be refined and executed
-    - `refinement_model` (str, optional): Model for refinement. Default is 'default'
-    - `execution_model` (str, optional): Model for execution. Default is 'default'
-    - `refinement_type` (str, optional): Type of refinement ('code' or 'default'). Default is 'default'
-
-- **handover_prompt**: Hands over a prompt to an external LLM for processing.
-  - Parameters:
-    - `prompt` (str): The prompt to be executed externally
-    - `model` (str, optional): Model name for execution. Default is 'default'
-
-- **breakdown_task**: Breaks down a task into sub-tasks with complexity ratings.
-  - Parameters:
-    - `task` (str): The full task description to break down
-    - `model` (str, optional): Model name for processing. Default is 'default'
-
-- **list_available_models**: Lists all available large language models accessible by the server.
-
-### mcp_config.py
-
-- **MCPConfig** class: Manages configuration settings for the MCP server.
-  - Parameters:
-    - `config_file_path` (str, optional): Path to YAML config file
-    - `api_endpoint` (str, optional): API endpoint URL
-    - `api_key` (str, optional): API key for authentication
-    - `model` (str, optional): Model name
-
-### workflow.py
-
-- **Workflow** class: Implements the business logic for prompt refinement and execution.
-  -  e.g.:
-    - `refine_prompt`: Refines a given prompt
-    - `refine_and_execute_external_prompt`: Refines and executes a prompt with an external LLM
-    - `handover_prompt`: Hands over a prompt to an external LLM for processing
-    - `breakdown_task`: Breaks down a task into sub-tasks
-    - `list_available_models`: Lists all available models
+See the [main.py](src/sokrates_mcp/main.py) file for a list of all mcp tools in the server
 
 ## Project Structure
 
 - `src/sokrates_mcp/main.py`: Sets up the MCP server and registers tools
 - `src/sokrates_mcp/mcp_config.py`: Configuration management
+- `src/sokrates_mcp/utils.py`: Helper and utility methods
 - `src/sokrates_mcp/workflow.py`: Business logic for prompt refinement and execution
 - `pyproject.toml`: Dependency management
 
 
-## Script List
-
-### `main.py`
-Sets up an MCP server using the FastMCP framework to provide tools for prompt refinement and execution workflows.
-#### Usage
-- `uv run python main.py` - Start the MCP server (default port: 8000)
-- `uv run fastmcp dev main.py` - Run in development mode with auto-reload
-
-### `mcp_config.py`
-Provides configuration management for the MCP server. Loads configuration from a YAML file and sets default values if needed.
-#### Usage
-- Import and use in other scripts:
-  ```python
-  from mcp_config import MCPConfig
-  config = MCPConfig(api_endpoint="https://api.example.com", model="my-model")
-  ```
-
-### `workflow.py`
-Implements the business logic for prompt refinement and execution workflows. Contains methods to refine prompts, execute them with external LLMs, break down tasks, etc.
-#### Usage
-- Import and use in other scripts:
-  ```python
-  from workflow import Workflow
-  from mcp_config import MCPConfig
-
-  config = MCPConfig()
-  workflow = Workflow(config)
-  result = await workflow.refine_prompt("Write a Python function to sort a list", refinement_type="code")
-  ```
-
-### `src/mcp_client_example.py`
-Demonstrates a basic Model Context Protocol (MCP) client using the fastmcp library. Defines a simple model and registers it with the client.
-
-#### Usage
-- Run as a standalone script:
-  ```bash
-  python src/mcp_client_example.py
-  ```
-- Or use with an ASGI server like Uvicorn:
-  ```bash
-  uvicorn src.mcp_client_example:main --factory
-  ```
-
 **Common Error:**
 If you see "ModuleNotFoundError: fastmcp", ensure:
-1. Dependencies are installed (`uv pip install .`)
+1. Dependencies are installed (`uv sync`)
 2. Python virtual environment is activated
 
 ## Changelog
+
+**0.4.0 (Aug 2025)**
+- adds new tools:
+  - read_files_from_directory
+  - directory_tree
+  - logging refactoring in workflow.py
 
 **0.3.0 (Aug 2025)**
 - adds new tools:
