@@ -8,7 +8,6 @@
 # - api_endpoint: API endpoint URL (default: http://localhost:1234/v1)
 # - api_key: API key for authentication (default: mykey)
 # - model: Model name to use (default: qwen/qwen3-4b-2507)
-# - verbose: Enable verbose logging (default: False)
 #
 # Usage example:
 #   config = MCPConfig(api_endpoint="https://api.example.com", model="my-model")
@@ -54,7 +53,7 @@ class MCPConfig:
         "openai"
     ]
     
-    def __init__(self, config_file_path: str = CONFIG_FILE_PATH, api_endpoint: str = DEFAULT_API_ENDPOINT, api_key: str = DEFAULT_API_KEY, model: str = DEFAULT_MODEL, verbose: bool = False):
+    def __init__(self, config_file_path: str = CONFIG_FILE_PATH, api_endpoint: str = DEFAULT_API_ENDPOINT, api_key: str = DEFAULT_API_KEY, model: str = DEFAULT_MODEL):
         """Initialize MCP configuration.
 
         Args:
@@ -63,11 +62,9 @@ class MCPConfig:
             api_endpoint (str): API endpoint URL. Defaults to DEFAULT_API_ENDPOINT.
             api_key (str): API key for authentication. Defaults to DEFAULT_API_KEY.
             model (str): Model name to use. Defaults to DEFAULT_MODEL.
-            verbose (bool): Enable verbose logging. Defaults to False.
 
         Side Effects:
             Initializes instance attributes with values from config file or defaults
-            Sets up logging based on verbose parameter
         """
         self.logger = logging.getLogger(__name__)
         self.config_file_path = config_file_path

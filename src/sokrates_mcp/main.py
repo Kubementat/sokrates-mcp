@@ -9,94 +9,7 @@
 # through various prompt engineering workflows. It provides APIs for refining prompts, executing them externally,
 # breaking down complex tasks, generating ideas, performing code reviews, and listing available models/providers.
 #
-# Parameters
-# - `refine_prompt`: Refines a given prompt by enriching it with additional context.
-#   - `prompt` (str): The input prompt to be refined.
-#   - `refinement_type` (str, optional): Type of refinement ('code' or 'default'). Default is 'default'.
-#   - `provider` (str, optional): Name of the provider to use for refinement. Default is 'default'.
-#   - `model` (str, optional): Model name for refinement. Default is 'default'.
 #
-# - `refine_and_execute_external_prompt`: Refines a prompt and executes it with an external LLM.
-#   - `prompt` (str): The input prompt to be refined and executed.
-#   - `provider` (str, optional): Name of the provider to use for LLM interactions. Default is 'default'.
-#   - `refinement_model` (str, optional): Model for refinement. Default is 'default'.
-#   - `execution_model` (str, optional): Model for execution. Default is 'default'.
-#   - `refinement_type` (str, optional): Type of refinement ('code' or 'default'). Default is 'default'.
-#
-# - `handover_prompt`: Hands over a prompt to an external LLM for processing.
-#   - `prompt` (str): The prompt to be executed externally.
-#   - `provider` (str, optional): Name of the provider to use for LLM interactions. Default is 'default'.
-#   - `model` (str, optional): Model name for execution. Default is 'default'.
-#   - `temperature` (float, optional): Temperature for the external execution. Default is 0.7.
-#
-# - `breakdown_task`: Breaks down a task into sub-tasks with complexity ratings.
-#   - `task` (str): The full task description to break down.
-#   - `provider` (str, optional): Name of the provider to use for LLM interactions. Default is 'default'.
-#   - `model` (str, optional): Model name for processing. Default is 'default'.
-#
-# - `generate_random_ideas`: Generates random ideas on a random topic.
-#   - `idea_count` (int, optional): Number of ideas to generate. Default is 1.
-#   - `provider` (str, optional): Name of the provider to use for LLM interactions. Default is 'default'.
-#   - `model` (str, optional): Model name for generation. Default is 'default'.
-#   - `temperature` (float, optional): Temperature for idea generation. Default is 0.7.
-#
-# - `generate_ideas_on_topic`: Generates ideas on a specific topic.
-#   - `topic` (str): The topic to generate ideas for.
-#   - `provider` (str, optional): Name of the provider to use for LLM interactions. Default is 'default'.
-#   - `model` (str, optional): Model name for generation. Default is 'default'.
-#   - `idea_count` (int, optional): Number of ideas to generate. Default is 1.
-#   - `temperature` (float, optional): Temperature for idea generation. Default is 0.7.
-#
-# - `generate_code_review`: Generates a code review in markdown format.
-#   - `source_file_paths` (list): List of source file paths to be reviewed.
-#   - `target_directory` (str): Directory to store the resulting review files.
-#   - `provider` (str, optional): Name of the provider to use for LLM interactions. Default is 'default'.
-#   - `model` (str, optional): Model name for code review generation. Default is 'default'.
-#   - `review_type` (str, optional): Type of review ('style', 'security', 'performance', 'quality'). Default is 'quality'.
-#
-# - `list_available_models_for_provider`: Lists all available large language models for a specific provider.
-#   - `provider_name` (str, optional): Name of the provider to list models for. Default is empty (uses default).
-#
-# - `list_available_providers`: Lists all configured and available API providers.
-#
-# Usage Examples
-# ```python
-# Refine a prompt
-# await refine_prompt("Write a Python function to sort a list", refinement_type="code")
-#
-# # Refine and execute a prompt with an external LLM
-# await refine_and_execute_external_prompt(
-#     "Generate a summary of the following text: ...",
-#     refinement_model="model1",
-#     execution_model="model2"
-# )
-#
-# # Hand over a prompt to an external LLM
-# await handover_prompt("Translate this text to French: ...")
-#
-# # Break down a task into sub-tasks
-# await breakdown_task("Implement user authentication system")
-#
-# # Generate random ideas
-# await generate_random_ideas(idea_count=3)
-#
-# # Generate ideas on a topic
-# await generate_ideas_on_topic("AI in healthcare", idea_count=5)
-#
-# # Generate code review
-# await generate_code_review(
-#     source_file_paths=["/path/to/file1.py", "/path/to/file2.py"],
-#     target_directory="/path/to/reviews"
-# )
-#
-# # List available models for a provider
-# await list_available_models_for_provider("my-provider")
-#
-# # List all available providers
-# await list_available_providers()
-# ```
-#
-
 from typing import Annotated, Optional
 from pydantic import Field
 from .mcp_config import MCPConfig
@@ -107,7 +20,7 @@ import os
 import argparse
 
 MCP_NAME = "sokrates-mcp"
-VERSION = "0.2.0"
+VERSION = "0.4.2"
 DEFAULT_PROVIDER_IDENTIFIER = "default"
 DEFAULT_MODEL_IDENTIFIER = "default"
 DEFAULT_REFINEMENT_TYPE = "default"
@@ -252,7 +165,7 @@ async def breakdown_task(task: Annotated[str, Field(description="The full task d
 
 @mcp.tool(
     name="generate_random_ideas",
-    description="Invents and generates a random topic an generates the provided count of ideas on the topic.",
+    description="Invents and generates a random topic and generates the provided count of ideas on the topic.",
     tags={"idea", "generator","invention","random"}
 )
 async def generate_random_ideas(ctx: Context,
@@ -286,7 +199,7 @@ async def generate_ideas_on_topic(
 async def generate_code_review(
     ctx: Context,
     source_directory: Annotated[str, Field(description="The absolute directory path containing source files to create reviews for. This should contain source files on the local filesystem.")],
-    source_file_paths: Annotated[list, Field(description="A list of absolute source file paths that should be reviewed. The paths should be absolute paths in the local filesystem.")],
+    source_file_paths: Annotated[list[str], Field(description="A list of absolute source file paths that should be reviewed. The paths should be absolute paths in the local filesystem.")],
     target_directory: Annotated[str, Field(description="The directory to store the resulting review markdown files. This should point to the desired target path for the markdown files on the local filesystem.")],
     provider: Annotated[str, Field(description="The name of the provider to use for LLM interactions. The default model name is 'default', which will pick the server's default provider configured.", default=DEFAULT_PROVIDER_IDENTIFIER)],
     model: Annotated[str, Field(description="[Optional] The name of the model that should be used for the generation. The default model name is 'default', which will pick the server's default model.", default=DEFAULT_MODEL_IDENTIFIER)],

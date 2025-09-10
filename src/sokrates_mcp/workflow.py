@@ -10,7 +10,25 @@ from sokrates.coding.code_review_workflow import run_code_review
 from .mcp_config import MCPConfig
 from .utils import Utils
 
+"""Workflow module for Sokrates MCP server.
+
+This module implements the :class:`Workflow` class which encapsulates
+all business logic exposed as FastMCP tools.  It relies on a validated
+:class:`~sokrates_mcp.mcp_config.MCPConfig` instance and uses the
+`sokrates` library to interact with LLM providers.
+"""
+
+"""Workflow module for Sokrates MCP server.
+
+This module implements the :class:`Workflow` class which encapsulates
+all business logic exposed as FastMCP tools.  It relies on a validated
+:class:`~sokrates_mcp.mcp_config.MCPConfig` instance and uses the
+`sokrates` library to interact with LLM providers.
+"""
+
 class Workflow:
+
+
   
   WORKFLOW_COMPLETION_MESSAGE = "Workflow completed."
   
