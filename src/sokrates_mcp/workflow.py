@@ -79,7 +79,7 @@ class Workflow:
     else:
       refinement_prompt_file = str(Path(f"{path}/{self.config.refinement_prompt_filename}").resolve())
 
-    return FileHelper.read_file(refinement_prompt_file, verbose=False)
+    return FileHelper.read_file(refinement_prompt_file)
     
   async def refine_prompt(self, prompt: str, ctx: Context, provider: str, model: str, refinement_type: str = 'default') -> str:
     """Refine a given prompt by enriching it with additional context.

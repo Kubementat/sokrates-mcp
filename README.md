@@ -1,7 +1,7 @@
 # sokrates-mcp
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
-[![Version: 0.4.2](https://img.shields.io/badge/version-0.4.2-green)](https://github.com/Kubementat/sokrates-mcp)
+[![Version: 0.4.3](https://img.shields.io/badge/version-0.4.3-green)](https://github.com/Kubementat/sokrates-mcp)
 
 A MCP server offering tools for prompt refinement and execution workflows using the FastMCP framework and the `sokrates` python library.
 
@@ -175,6 +175,8 @@ If you see "ModuleNotFoundError: fastmcp", ensure:
 2. Python virtual environment is activated
 
 ## Changelog
+**0.4.3 (Sep 2025)**
+- bugfix in workflow class - fix refinement workflow
 
 **0.4.2 (Sep 2025)**
 - Update version to 0.4.2

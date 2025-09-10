@@ -20,7 +20,7 @@ import os
 import argparse
 
 MCP_NAME = "sokrates-mcp"
-VERSION = "0.4.2"
+VERSION = "0.4.3"
 DEFAULT_PROVIDER_IDENTIFIER = "default"
 DEFAULT_MODEL_IDENTIFIER = "default"
 DEFAULT_REFINEMENT_TYPE = "default"
