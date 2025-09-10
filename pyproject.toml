@@ -1,7 +1,7 @@
 [project]
 name = "sokrates-mcp"
 version = "0.4.3"
-description = "A templated MCP server for demonstration and quick start."
+description = "The sokrates MCP server provides the sokrates workflows as tools. It allows prompt refinement, external execution, idea generation, file and directory operations, code review generation, dice rolling and supports multiple LLM provider configurations for distributing workloads."
 readme = "README.md"
 requires-python = ">=3.10"
 license = { file = "LICENSE" }
